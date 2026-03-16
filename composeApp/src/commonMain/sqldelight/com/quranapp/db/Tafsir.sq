@@ -1,0 +1,25 @@
+CREATE TABLE IF NOT EXISTS tafsir (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    surah_number INTEGER NOT NULL,
+    ayah_number  INTEGER NOT NULL,
+    book_name    TEXT    NOT NULL,
+    content      TEXT    NOT NULL,
+    UNIQUE(surah_number, ayah_number, book_name)
+);
+
+CREATE INDEX IF NOT EXISTS idx_tafsir_ref ON tafsir(surah_number, ayah_number);
+
+selectByAyah:
+SELECT * FROM tafsir
+WHERE surah_number = :surahNumber AND ayah_number = :ayahNumber
+ORDER BY book_name;
+
+selectByAyahAndBook:
+SELECT * FROM tafsir
+WHERE surah_number = :surahNumber
+  AND ayah_number  = :ayahNumber
+  AND book_name    = :bookName;
+
+insert:
+INSERT OR IGNORE INTO tafsir(surah_number, ayah_number, book_name, content)
+VALUES (:surah_number, :ayah_number, :book_name, :content);

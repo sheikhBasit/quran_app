@@ -1,0 +1,49 @@
+CREATE TABLE IF NOT EXISTS hadith (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    collection    TEXT    NOT NULL,
+    book_number   INTEGER NOT NULL DEFAULT 1,
+    hadith_number INTEGER NOT NULL,
+    arabic_text   TEXT    NOT NULL DEFAULT '',
+    translation   TEXT    NOT NULL,
+    narrator      TEXT    NOT NULL DEFAULT '',
+    UNIQUE(collection, book_number, hadith_number)
+);
+
+CREATE INDEX IF NOT EXISTS idx_hadith_col    ON hadith(collection, book_number);
+CREATE INDEX IF NOT EXISTS idx_hadith_search ON hadith(translation);
+
+selectCollections:
+SELECT collection,
+       COUNT(DISTINCT book_number) AS book_count,
+       COUNT(*)                    AS hadith_count
+FROM hadith
+GROUP BY collection
+ORDER BY collection;
+
+selectBooksByCollection:
+SELECT book_number, COUNT(*) AS hadith_count
+FROM hadith
+WHERE collection = :collection
+GROUP BY book_number
+ORDER BY book_number;
+
+selectByBook:
+SELECT * FROM hadith
+WHERE collection = :collection AND book_number = :bookNumber
+ORDER BY hadith_number;
+
+selectByReference:
+SELECT * FROM hadith
+WHERE collection = :collection
+  AND book_number = :bookNumber
+  AND hadith_number = :hadithNumber;
+
+search:
+SELECT * FROM hadith
+WHERE translation LIKE :query
+ORDER BY collection, book_number, hadith_number
+LIMIT 50;
+
+insert:
+INSERT OR IGNORE INTO hadith(collection, book_number, hadith_number, arabic_text, translation, narrator)
+VALUES (:collection, :book_number, :hadith_number, :arabic_text, :translation, :narrator);

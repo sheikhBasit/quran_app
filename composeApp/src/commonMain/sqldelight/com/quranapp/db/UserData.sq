@@ -1,0 +1,72 @@
+-- ── Bookmarks ──────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS bookmarks (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    type         TEXT    NOT NULL CHECK(type IN ('ayah','hadith')),
+    reference_id INTEGER NOT NULL,
+    created_at   TEXT    NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(type, reference_id)
+);
+
+insertBookmark:
+INSERT OR IGNORE INTO bookmarks(type, reference_id)
+VALUES (:type, :referenceId);
+
+deleteBookmark:
+DELETE FROM bookmarks
+WHERE type = :type AND reference_id = :referenceId;
+
+isBookmarked:
+SELECT COUNT(*) FROM bookmarks
+WHERE type = :type AND reference_id = :referenceId;
+
+selectAllBookmarks:
+SELECT * FROM bookmarks
+WHERE type = :type
+ORDER BY created_at DESC;
+
+-- ── Highlights ─────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS highlights (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    ayah_id    INTEGER NOT NULL UNIQUE,
+    color      TEXT    NOT NULL DEFAULT '#FFD700',
+    created_at TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+
+upsertHighlight:
+INSERT INTO highlights(ayah_id, color)
+VALUES (:ayahId, :color)
+ON CONFLICT(ayah_id) DO UPDATE SET color = excluded.color;
+
+deleteHighlight:
+DELETE FROM highlights WHERE ayah_id = :ayahId;
+
+selectHighlightColor:
+SELECT color FROM highlights WHERE ayah_id = :ayahId;
+
+selectAllHighlights:
+SELECT * FROM highlights;
+
+-- ── Notes ──────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS notes (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    type         TEXT    NOT NULL CHECK(type IN ('ayah','hadith')),
+    reference_id INTEGER NOT NULL,
+    content      TEXT    NOT NULL,
+    updated_at   TEXT    NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(type, reference_id)
+);
+
+upsertNote:
+INSERT INTO notes(type, reference_id, content, updated_at)
+VALUES (:type, :referenceId, :content, datetime('now'))
+ON CONFLICT(type, reference_id) DO UPDATE
+    SET content    = excluded.content,
+        updated_at = datetime('now');
+
+selectNote:
+SELECT * FROM notes
+WHERE type = :type AND reference_id = :referenceId;
+
+deleteNote:
+DELETE FROM notes
+WHERE type = :type AND reference_id = :referenceId;

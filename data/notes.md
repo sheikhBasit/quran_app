@@ -1,0 +1,2 @@
+- quran ayats in arabic with urdu translation
+- this quration translation and all data id taken from 1-dawateislami tafseer book

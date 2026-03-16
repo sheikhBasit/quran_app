@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Quran App</string>
+    <string name="tab_quran">Quran</string>
+    <string name="tab_hadith">Hadith</string>
+    <string name="tab_search">Search</string>
+    <string name="tab_chatbot">Chat</string>
+    <string name="tab_settings">Settings</string>
+    <string name="prayer_fajr">Fajr</string>
+    <string name="prayer_dhuhr">Dhuhr</string>
+    <string name="prayer_asr">Asr</string>
+    <string name="prayer_maghrib">Maghrib</string>
+    <string name="prayer_isha">Isha</string>
+    <string name="scholar_disclaimer">For personal guidance, please consult a qualified Islamic scholar.</string>
+    <string name="offline_message">Internet connection required for the AI chatbot.</string>
+    <string name="loading">Loading…</string>
+    <string name="error_generic">Something went wrong. Please try again.</string>
+    <string name="bookmark_added">Bookmark added</string>
+    <string name="bookmark_removed">Bookmark removed</string>
+    <string name="note_saved">Note saved</string>
+    <string name="search_hint">Search Quran and Hadith…</string>
+    <string name="search_min_chars">Enter at least 3 characters</string>
+    <string name="no_results">No results found</string>
+    <string name="tafsir_ibn_kathir">Ibn Kathir</string>
+    <string name="tafsir_maarif">Maarif</string>
+    <string name="tafsir_ibn_abbas">Ibn Abbas</string>
+    <string name="script_hafs">Hafs</string>
+    <string name="script_warsh">Warsh</string>
+    <string name="mode_scroll">Scroll</string>
+    <string name="mode_page">Page</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_light">Light</string>
+</resources>

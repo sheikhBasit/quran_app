@@ -1,0 +1,40 @@
+-- ── Reading Position (single row, always id=1) ─────────────────────────────
+CREATE TABLE IF NOT EXISTS reading_position (
+    id           INTEGER PRIMARY KEY CHECK(id = 1),
+    surah_number INTEGER NOT NULL DEFAULT 1,
+    ayah_number  INTEGER NOT NULL DEFAULT 1,
+    page_number  INTEGER NOT NULL DEFAULT 1,
+    mode         TEXT    NOT NULL DEFAULT 'scroll'
+);
+
+INSERT OR IGNORE INTO reading_position(id) VALUES(1);
+
+getPosition:
+SELECT * FROM reading_position WHERE id = 1;
+
+upsertPosition:
+INSERT INTO reading_position(id, surah_number, ayah_number, page_number, mode)
+VALUES(1, :surahNumber, :ayahNumber, :pageNumber, :mode)
+ON CONFLICT(id) DO UPDATE
+    SET surah_number = excluded.surah_number,
+        ayah_number  = excluded.ayah_number,
+        page_number  = excluded.page_number,
+        mode         = excluded.mode;
+
+-- ── App Settings (key/value) ────────────────────────────────────────────────
+-- Keys: quran_script (hafs|warsh), theme (dark|light), reading_mode (scroll|page)
+CREATE TABLE IF NOT EXISTS app_settings (
+    key   TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);
+
+INSERT OR IGNORE INTO app_settings VALUES('quran_script',  'hafs');
+INSERT OR IGNORE INTO app_settings VALUES('theme',         'dark');
+INSERT OR IGNORE INTO app_settings VALUES('reading_mode',  'scroll');
+
+getSetting:
+SELECT value FROM app_settings WHERE key = :key;
+
+upsertSetting:
+INSERT INTO app_settings(key, value) VALUES(:key, :value)
+ON CONFLICT(key) DO UPDATE SET value = excluded.value;

@@ -1,0 +1,18 @@
+CREATE TABLE IF NOT EXISTS surahs (
+    number               INTEGER PRIMARY KEY,
+    name_arabic          TEXT    NOT NULL,
+    name_english         TEXT    NOT NULL,
+    name_transliteration TEXT    NOT NULL,
+    revelation_type      TEXT    NOT NULL,
+    ayah_count           INTEGER NOT NULL
+);
+
+selectAll:
+SELECT * FROM surahs ORDER BY number;
+
+selectByNumber:
+SELECT * FROM surahs WHERE number = :number;
+
+insert:
+INSERT OR IGNORE INTO surahs
+VALUES (:number, :name_arabic, :name_english, :name_transliteration, :revelation_type, :ayah_count);

@@ -1,0 +1,82 @@
+[versions]
+kotlin                  = "2.0.21"
+compose                 = "1.7.0"
+agp                     = "8.5.2"
+voyager                 = "1.0.0"
+koin                    = "3.5.6"
+koin-compose            = "1.2.0"
+sqldelight              = "2.0.2"
+ktor                    = "2.3.12"
+coroutines              = "1.9.0"
+serialization-json      = "1.7.3"
+multiplatform-settings  = "1.2.0"
+adhan                   = "1.2.1"
+mockk                   = "1.13.12"
+androidx-activityCompose = "1.9.3"
+androidx-core-ktx       = "1.13.1"
+
+[libraries]
+# Compose Multiplatform
+compose-runtime         = { module = "org.jetbrains.compose.runtime:runtime",          version.ref = "compose" }
+compose-foundation      = { module = "org.jetbrains.compose.foundation:foundation",    version.ref = "compose" }
+compose-material3       = { module = "org.jetbrains.compose.material3:material3",      version.ref = "compose" }
+compose-ui              = { module = "org.jetbrains.compose.ui:ui",                    version.ref = "compose" }
+compose-resources       = { module = "org.jetbrains.compose.components:components-resources", version.ref = "compose" }
+compose-ui-test         = { module = "org.jetbrains.compose.ui:ui-test-junit4",        version.ref = "compose" }
+
+# Voyager navigation
+voyager-navigator       = { module = "cafe.adriel.voyager:voyager-navigator",          version.ref = "voyager" }
+voyager-screenmodel     = { module = "cafe.adriel.voyager:voyager-screenmodel",        version.ref = "voyager" }
+voyager-koin            = { module = "cafe.adriel.voyager:voyager-koin",               version.ref = "voyager" }
+voyager-tab-navigator   = { module = "cafe.adriel.voyager:voyager-tab-navigator",      version.ref = "voyager" }
+voyager-transitions     = { module = "cafe.adriel.voyager:voyager-transitions",        version.ref = "voyager" }
+
+# Koin DI
+koin-core               = { module = "io.insert-koin:koin-core",                       version.ref = "koin" }
+koin-android            = { module = "io.insert-koin:koin-android",                    version.ref = "koin" }
+koin-compose            = { module = "io.insert-koin:koin-compose",                    version.ref = "koin-compose" }
+
+# SQLDelight
+sqldelight-runtime      = { module = "app.cash.sqldelight:runtime",                    version.ref = "sqldelight" }
+sqldelight-coroutines   = { module = "app.cash.sqldelight:coroutines-extensions",      version.ref = "sqldelight" }
+sqldelight-android      = { module = "app.cash.sqldelight:android-driver",             version.ref = "sqldelight" }
+sqldelight-native       = { module = "app.cash.sqldelight:native-driver",              version.ref = "sqldelight" }
+sqldelight-sqlite       = { module = "app.cash.sqldelight:sqlite-driver",              version.ref = "sqldelight" }
+
+# Ktor Client
+ktor-core               = { module = "io.ktor:ktor-client-core",                       version.ref = "ktor" }
+ktor-okhttp             = { module = "io.ktor:ktor-client-okhttp",                     version.ref = "ktor" }
+ktor-darwin             = { module = "io.ktor:ktor-client-darwin",                     version.ref = "ktor" }
+ktor-content-neg        = { module = "io.ktor:ktor-client-content-negotiation",        version.ref = "ktor" }
+ktor-serialization      = { module = "io.ktor:ktor-serialization-kotlinx-json",        version.ref = "ktor" }
+ktor-logging            = { module = "io.ktor:ktor-client-logging",                    version.ref = "ktor" }
+
+# Coroutines
+coroutines-core         = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core",  version.ref = "coroutines" }
+coroutines-test         = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test",  version.ref = "coroutines" }
+
+# Serialization
+serialization-json      = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization-json" }
+
+# Multiplatform Settings (key-value store)
+mp-settings             = { module = "com.russhwolf:multiplatform-settings",            version.ref = "multiplatform-settings" }
+mp-settings-coroutines  = { module = "com.russhwolf:multiplatform-settings-coroutines", version.ref = "multiplatform-settings" }
+
+# Prayer Times
+adhan                   = { module = "com.batoulapps.adhan:adhan-kotlin",               version.ref = "adhan" }
+
+# Testing
+kotlin-test             = { module = "org.jetbrains.kotlin:kotlin-test",               version.ref = "kotlin" }
+mockk                   = { module = "io.mockk:mockk",                                 version = "1.13.12" }
+
+# Android specific
+androidx-activity-compose = { module = "androidx.activity:activity-compose",           version.ref = "androidx-activityCompose" }
+androidx-core-ktx       = { module = "androidx.core:core-ktx",                         version.ref = "androidx-core-ktx" }
+
+[plugins]
+kotlinMultiplatform     = { id = "org.jetbrains.kotlin.multiplatform",                 version.ref = "kotlin" }
+androidApplication      = { id = "com.android.application",                            version.ref = "agp" }
+jetbrainsCompose        = { id = "org.jetbrains.compose",                              version.ref = "compose" }
+compose-compiler        = { id = "org.jetbrains.kotlin.plugin.compose",               version.ref = "kotlin" }
+sqldelight              = { id = "app.cash.sqldelight",                                version.ref = "sqldelight" }
+kotlinSerialization     = { id = "org.jetbrains.kotlin.plugin.serialization",          version.ref = "kotlin" }

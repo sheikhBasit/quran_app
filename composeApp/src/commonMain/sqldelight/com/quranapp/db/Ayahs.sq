@@ -1,0 +1,41 @@
+CREATE TABLE IF NOT EXISTS ayahs (
+    id                   INTEGER PRIMARY KEY,
+    surah_number         INTEGER NOT NULL,
+    ayah_number          INTEGER NOT NULL,
+    page_number          INTEGER NOT NULL DEFAULT 1,
+    juz_number           INTEGER NOT NULL DEFAULT 1,
+    arabic_text_hafs     TEXT    NOT NULL,
+    arabic_text_warsh    TEXT    NOT NULL DEFAULT '',
+    translation_english  TEXT    NOT NULL,
+    UNIQUE(surah_number, ayah_number)
+);
+
+CREATE INDEX IF NOT EXISTS idx_ayahs_surah  ON ayahs(surah_number);
+CREATE INDEX IF NOT EXISTS idx_ayahs_page   ON ayahs(page_number);
+CREATE INDEX IF NOT EXISTS idx_ayahs_search ON ayahs(translation_english);
+
+-- Queries
+selectBySurah:
+SELECT * FROM ayahs
+WHERE surah_number = :surahNumber
+ORDER BY ayah_number;
+
+selectByPage:
+SELECT * FROM ayahs
+WHERE page_number = :pageNumber
+ORDER BY surah_number, ayah_number;
+
+selectByReference:
+SELECT * FROM ayahs
+WHERE surah_number = :surahNumber AND ayah_number = :ayahNumber;
+
+search:
+SELECT * FROM ayahs
+WHERE translation_english LIKE :query
+ORDER BY surah_number, ayah_number
+LIMIT 50;
+
+insert:
+INSERT OR IGNORE INTO ayahs
+VALUES (:id, :surah_number, :ayah_number, :page_number, :juz_number,
+        :arabic_text_hafs, :arabic_text_warsh, :translation_english);
