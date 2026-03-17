@@ -1,49 +1,49 @@
 CREATE TABLE IF NOT EXISTS hadith (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
     collection    TEXT    NOT NULL,
-    book_number   INTEGER NOT NULL DEFAULT 1,
+    chapter_name  TEXT    NOT NULL,
     hadith_number INTEGER NOT NULL,
     arabic_text   TEXT    NOT NULL DEFAULT '',
     translation   TEXT    NOT NULL,
     narrator      TEXT    NOT NULL DEFAULT '',
-    UNIQUE(collection, book_number, hadith_number)
+    UNIQUE(collection, chapter_name, hadith_number)
 );
 
-CREATE INDEX IF NOT EXISTS idx_hadith_col    ON hadith(collection, book_number);
+CREATE INDEX IF NOT EXISTS idx_hadith_col    ON hadith(collection, chapter_name);
 CREATE INDEX IF NOT EXISTS idx_hadith_search ON hadith(translation);
 
 selectCollections:
 SELECT collection,
-       COUNT(DISTINCT book_number) AS book_count,
+       COUNT(DISTINCT chapter_name) AS chapter_count,
        COUNT(*)                    AS hadith_count
 FROM hadith
 GROUP BY collection
 ORDER BY collection;
 
-selectBooksByCollection:
-SELECT book_number, COUNT(*) AS hadith_count
+selectChaptersByCollection:
+SELECT chapter_name, COUNT(*) AS hadith_count
 FROM hadith
 WHERE collection = :collection
-GROUP BY book_number
-ORDER BY book_number;
+GROUP BY chapter_name
+ORDER BY chapter_name;
 
-selectByBook:
+selectByChapter:
 SELECT * FROM hadith
-WHERE collection = :collection AND book_number = :bookNumber
+WHERE collection = :collection AND chapter_name = :chapterName
 ORDER BY hadith_number;
 
 selectByReference:
 SELECT * FROM hadith
 WHERE collection = :collection
-  AND book_number = :bookNumber
+  AND chapter_name = :chapterName
   AND hadith_number = :hadithNumber;
 
 search:
 SELECT * FROM hadith
 WHERE translation LIKE :query
-ORDER BY collection, book_number, hadith_number
+ORDER BY collection, chapter_name, hadith_number
 LIMIT 50;
 
 insert:
-INSERT OR IGNORE INTO hadith(collection, book_number, hadith_number, arabic_text, translation, narrator)
-VALUES (:collection, :book_number, :hadith_number, :arabic_text, :translation, :narrator);
+INSERT OR IGNORE INTO hadith(collection, chapter_name, hadith_number, arabic_text, translation, narrator)
+VALUES (:collection, :chapter_name, :hadith_number, :arabic_text, :translation, :narrator);

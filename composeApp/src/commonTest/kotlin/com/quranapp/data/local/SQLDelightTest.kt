@@ -48,11 +48,11 @@ class SQLDelightTest {
             "In the name of Allah means seeking His blessings.")
 
         // Hadith
-        db.hadithQueries.insert("bukhari", 1L, 1L, "",
+        db.hadithQueries.insert("bukhari", "Revelation", 1L, "",
             "Actions are judged by intentions.", "Umar ibn al-Khattab")
-        db.hadithQueries.insert("bukhari", 1L, 2L, "",
+        db.hadithQueries.insert("bukhari", "Revelation", 2L, "",
             "Islam is built on five pillars.", "Ibn Umar")
-        db.hadithQueries.insert("muslim", 1L, 1L, "",
+        db.hadithQueries.insert("muslim", "Faith", 1L, "",
             "Whoever believes in Allah and the Last Day.", "Abu Hurairah")
     }
 
@@ -142,17 +142,30 @@ class SQLDelightTest {
         val collections = db.hadithQueries.selectCollections().executeAsList()
         assertEquals(2, collections.size)
         val bukhari = collections.first { it.collection == "bukhari" }
+        assertEquals(1L, bukhari.chapter_count)
         assertEquals(2L, bukhari.hadith_count)
     }
+    
+    @Test fun `selectChaptersByCollection returns chapters for collection`() {
+        val chapters = db.hadithQueries.selectChaptersByCollection("bukhari").executeAsList()
+        assertEquals(1, chapters.size)
+        assertEquals("Revelation", chapters[0].chapter_name)
+    }
 
-    @Test fun `selectByBook returns hadiths for collection`() {
-        val hadiths = db.hadithQueries.selectByBook("bukhari", 1L).executeAsList()
+    @Test fun `selectByChapter returns hadiths for collection`() {
+        val hadiths = db.hadithQueries.selectByChapter("bukhari", "Revelation").executeAsList()
         assertEquals(2, hadiths.size)
     }
 
-    @Test fun `selectByBook returns empty for unknown collection`() {
-        val hadiths = db.hadithQueries.selectByBook("unknown", 1L).executeAsList()
+    @Test fun `selectByChapter returns empty for unknown collection`() {
+        val hadiths = db.hadithQueries.selectByChapter("unknown", "Revelation").executeAsList()
         assertTrue(hadiths.isEmpty())
+    }
+
+    @Test fun `selectHadithByReference returns exact hadith`() {
+        val hadith = db.hadithQueries.selectByReference("bukhari", "Revelation", 1L).executeAsOneOrNull()
+        assertNotNull(hadith)
+        assertTrue(hadith.translation.contains("intentions"))
     }
 
     @Test fun `search hadith returns matching results`() {
@@ -213,6 +226,13 @@ class SQLDelightTest {
         db.userDataQueries.deleteHighlight(102L)
         val color = db.userDataQueries.selectHighlightColor(102L).executeAsOneOrNull()
         assertNull(color)
+    }
+
+    @Test fun `selectAllHighlights returns all highlights`() {
+        db.userDataQueries.upsertHighlight(103L, "#FFD700")
+        db.userDataQueries.upsertHighlight(104L, "#90EE90")
+        val all = db.userDataQueries.selectAllHighlights().executeAsList()
+        assertEquals(2, all.size)
     }
 
     // ── User Data — Notes ───────────────────────────────────────────────────

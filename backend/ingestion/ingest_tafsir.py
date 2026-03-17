@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Ingest Tafsir books into pgvector.
-Ingests: Ibn Kathir, Maarif ul Quran, Ibn Abbas (English).
+Real data: data/tafsir/{book}.json  (single flat file)
+Fields: surah_number, ayat_number, tafseer
 """
 import json, asyncio
 from pathlib import Path
@@ -8,40 +9,58 @@ import asyncpg
 from app.rag.embedder import embed_passage
 from app.config import settings
 
-TAFSIR_BOOKS = {
-    "ibn_kathir": "data/tafsir/ibn_kathir",
-    "maarif":     "data/tafsir/maarif",
-    "ibn_abbas":  "data/tafsir/ibn_abbas",
-}
+TAFSIR_BOOKS = ["ibn_kathir", "maarif", "ibn_abbas"]
 BATCH_SIZE = 50
 
 
-def load_folder(folder: str) -> list:
-    entries = []
-    for f in sorted(Path(folder).glob("*.json")):
-        with open(f, encoding="utf-8") as fp:
-            data = json.load(fp)
-            entries.extend(data if isinstance(data, list) else [data])
-    return entries
+def load_tafsir(book_name: str) -> list:
+    """Load tafsir entries from single .json file or folder."""
+    json_file = Path(f"data/tafsir/{book_name}.json")
+    folder    = Path(f"data/tafsir/{book_name}")
+    if json_file.exists():
+        with open(json_file, encoding="utf-8") as f:
+            entries = json.load(f)
+        return entries if isinstance(entries, list) else [entries]
+    elif folder.exists():
+        entries = []
+        for f in sorted(folder.glob("*.json")):
+            with open(f, encoding="utf-8") as fp:
+                data = json.load(fp)
+                entries.extend(data if isinstance(data, list) else [data])
+        return entries
+    return []
+
+
+def get_content(e: dict) -> str:
+    """Get tafsir text — real field is 'tafseer', fallback to 'content'."""
+    return (e.get("tafseer") or e.get("content") or "").strip()
+
+
+def get_ayah_num(e: dict):
+    """Get ayah number — real field is 'ayat_number', fallback to 'ayah_number'."""
+    return e.get("ayat_number") or e.get("ayah_number")
 
 
 async def ingest():
     conn = await asyncpg.connect(settings.database_url.replace("+asyncpg", ""))
 
-    for book_name, folder in TAFSIR_BOOKS.items():
-        if not Path(folder).exists():
-            print(f"⚠  Skipping {book_name} — folder not found: {folder}")
+    for book_name in TAFSIR_BOOKS:
+        entries = load_tafsir(book_name)
+        if not entries:
+            print(f"⚠  Skipping {book_name} — no entries found")
             continue
 
-        entries = load_folder(folder)
         batch, total = [], 0
 
         for entry in entries:
-            embedding = embed_passage(entry["content"])
-            batch.append((
-                entry["surah_number"], entry["ayah_number"],
-                book_name, entry["content"], embedding
-            ))
+            content  = get_content(entry)
+            ayah_num = get_ayah_num(entry)
+            surah    = entry.get("surah_number")
+            if not content or not ayah_num or not surah:
+                continue
+            embedding = embed_passage(content)
+            batch.append((surah, ayah_num, book_name, content, embedding))
+
             if len(batch) >= BATCH_SIZE:
                 await conn.executemany(
                     "INSERT INTO tafsir_embeddings"

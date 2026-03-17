@@ -1,5 +1,7 @@
 package com.quranapp
 
+import com.quranapp.domain.model.*
+
 /**
  * Shared fake data for all test files.
  * Import in any test: import com.quranapp.TestFixtures

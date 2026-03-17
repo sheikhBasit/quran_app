@@ -34,26 +34,24 @@ class QuranViewModel(
     fun loadSurah(surahNumber: Int) {
         screenModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-            getAyahsBySurah(surahNumber)
-                .onSuccess { ayahs ->
-                    _uiState.update { it.copy(ayahs = ayahs, isLoading = false, currentSurah = surahNumber) }
-                }
-                .onFailure { e ->
-                    _uiState.update { it.copy(error = e.message, isLoading = false) }
-                }
+            try {
+                val ayahs = getAyahsBySurah(surahNumber).getOrThrow()
+                _uiState.update { it.copy(ayahs = ayahs, isLoading = false, currentSurah = surahNumber) }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = e.message, isLoading = false) }
+            }
         }
     }
 
     fun loadPage(pageNumber: Int) {
         screenModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
-            getAyahsForPage(pageNumber)
-                .onSuccess { ayahs ->
-                    _uiState.update { it.copy(ayahs = ayahs, isLoading = false, currentPage = pageNumber) }
-                }
-                .onFailure { e ->
-                    _uiState.update { it.copy(error = e.message, isLoading = false) }
-                }
+            try {
+                val ayahs = getAyahsForPage(pageNumber).getOrThrow()
+                _uiState.update { it.copy(ayahs = ayahs, isLoading = false, currentPage = pageNumber) }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = e.message, isLoading = false) }
+            }
         }
     }
 
@@ -77,7 +75,7 @@ data class ChatbotUiState(
 )
 
 class ChatbotViewModel(
-    private val sendMessage: SendChatMessageUseCase,
+    private val sendChatMessageUseCase: SendChatMessageUseCase,
 ) : ScreenModel {
 
     private val _uiState = MutableStateFlow(ChatbotUiState())
@@ -92,29 +90,28 @@ class ChatbotViewModel(
         _uiState.update { it.copy(messages = it.messages + userMsg + loadingMsg, isLoading = true) }
 
         screenModelScope.launch {
-            sendMessage(text)
-                .onSuccess { response ->
-                    _uiState.update { state ->
-                        val updated = state.messages.dropLast(1) +
-                            ChatMessage(
-                                id = UUID.randomUUID().toString(),
-                                role = ChatRole.ASSISTANT,
-                                content = response.answer,
-                                sources = response.sources,
-                            )
-                        state.copy(messages = updated, isLoading = false)
-                    }
-                }
-                .onFailure { e ->
-                    _uiState.update { state ->
-                        val errorMsg = ChatMessage(
+            try {
+                val response = sendChatMessageUseCase(text).getOrThrow()
+                _uiState.update { state ->
+                    val updated = state.messages.dropLast(1) +
+                        ChatMessage(
                             id = UUID.randomUUID().toString(),
                             role = ChatRole.ASSISTANT,
-                            content = "Sorry, an error occurred: ${e.message ?: "Service unavailable"}",
+                            content = response.answer,
+                            sources = response.sources,
                         )
-                        state.copy(messages = state.messages.dropLast(1) + errorMsg, isLoading = false)
-                    }
+                    state.copy(messages = updated, isLoading = false)
                 }
+            } catch (e: Exception) {
+                _uiState.update { state ->
+                    val errorMsg = ChatMessage(
+                        id = UUID.randomUUID().toString(),
+                        role = ChatRole.ASSISTANT,
+                        content = "Sorry, an error occurred: ${e.message ?: "Service unavailable"}",
+                    )
+                    state.copy(messages = state.messages.dropLast(1) + errorMsg, isLoading = false)
+                }
+            }
         }
     }
 }

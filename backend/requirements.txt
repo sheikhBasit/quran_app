@@ -4,10 +4,9 @@ sqlalchemy[asyncio]==2.0.31
 asyncpg==0.29.0
 pgvector==0.3.2
 sentence-transformers==3.0.1
-anthropic==0.31.1
+httpx==0.27.0
 pydantic-settings==2.3.4
 python-dotenv==1.0.1
-httpx==0.27.0
 
 # Dev / test
 pytest==8.2.2

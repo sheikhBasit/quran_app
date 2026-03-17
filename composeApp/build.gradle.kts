@@ -90,6 +90,7 @@ kotlin {
             implementation(libs.sqldelight.android)
             implementation(libs.androidx.activity.compose)
             implementation(libs.androidx.core.ktx)
+            implementation("com.google.android.gms:play-services-location:21.2.0")
         }
 
         // ── iOS ────────────────────────────────────────────────────────────
@@ -137,6 +138,7 @@ sqldelight {
         create("QuranDatabase") {
             packageName.set("com.quranapp.db")
             srcDirs.setFrom("src/commonMain/sqldelight")
+            dialect("app.cash.sqldelight:sqlite-3-24-dialect:2.0.2")
         }
     }
 }

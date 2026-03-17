@@ -1,0 +1,35 @@
+# Gradle
+.gradle/
+build/
+*/build/
+
+# Kotlin / JVM
+*.class
+*.pyc
+.kotlin/
+
+# Android
+local.properties
+.metadata
+.gradle
+gradle-app.setting
+*.apk
+*.ap_
+*.dex
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Data and Artifacts
+composeApp/src/androidMain/assets/quran.db
+data/hadith/
+data/tafsir/
+data/ayahs/
+
+# Docker
+.DS_Store
+EOF

@@ -92,9 +92,9 @@ actual class CompassSensor(private val context: Context) {
 actual class NotificationScheduler(private val context: Context) {
     actual fun schedulePrayerAlarm(prayerName: String, timeMs: Long, soundUri: String?) {
         val alarmManager = context.getSystemService(android.app.AlarmManager::class.java)
-        val intent = android.content.Intent(context, PrayerAlarmReceiver::class.java).apply {
+        val intent = android.content.Intent(context, Class.forName("com.quranapp.actual.PrayerAlarmReceiver")).apply {
             putExtra("prayer_name", prayerName)
-            putExtra("sound_uri", soundUri)
+            if (soundUri != null) putExtra("sound_uri", soundUri)
         }
         val pendingIntent = android.app.PendingIntent.getBroadcast(
             context, prayerName.hashCode(), intent,
@@ -107,7 +107,7 @@ actual class NotificationScheduler(private val context: Context) {
 
     actual fun cancelPrayerAlarm(prayerName: String) {
         val alarmManager = context.getSystemService(android.app.AlarmManager::class.java)
-        val intent = android.content.Intent(context, PrayerAlarmReceiver::class.java)
+        val intent = android.content.Intent(context, Class.forName("com.quranapp.actual.PrayerAlarmReceiver"))
         val pendingIntent = android.app.PendingIntent.getBroadcast(
             context, prayerName.hashCode(), intent,
             android.app.PendingIntent.FLAG_NO_CREATE or android.app.PendingIntent.FLAG_IMMUTABLE
