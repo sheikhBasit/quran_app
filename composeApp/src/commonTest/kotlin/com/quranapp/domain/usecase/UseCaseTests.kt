@@ -163,6 +163,28 @@ class SendChatMessageUseCaseTest {
     }
 }
 
+// ─── Hadith ───────────────────────────────────────────────────────────────────
+
+class GetHadithByChapterUseCaseTest {
+    private val repo: HadithRepository = mockk()
+    private val useCase = GetHadithByChapterUseCase(repo)
+
+    @Test fun `returns success for valid collection and chapter`() = runTest {
+        coEvery { repo.getHadithByChapter("bukhari", "Revelation") } returns listOf(TestFixtures.fakeHadith)
+        val result = useCase("bukhari", "Revelation")
+        assertTrue(result.isSuccess)
+        assertEquals(1, result.getOrNull()?.size)
+    }
+
+    @Test fun `returns failure for empty collection`() = runTest {
+        assertTrue(useCase("", "Revelation").isFailure)
+    }
+
+    @Test fun `returns failure for empty chapter`() = runTest {
+        assertTrue(useCase("bukhari", "").isFailure)
+    }
+}
+
 // ─── User Data ────────────────────────────────────────────────────────────────
 
 class SaveNoteUseCaseTest {

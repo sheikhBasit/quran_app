@@ -41,7 +41,8 @@ CREATE TABLE IF NOT EXISTS hadith (
     id INTEGER PRIMARY KEY AUTOINCREMENT, collection TEXT NOT NULL,
     chapter_name TEXT NOT NULL DEFAULT '', hadith_number INTEGER NOT NULL,
     arabic_text TEXT NOT NULL DEFAULT '', translation TEXT NOT NULL,
-    UNIQUE(collection, hadith_number)
+    narrator TEXT NOT NULL DEFAULT '',
+    UNIQUE(collection, chapter_name, hadith_number)
 );
 CREATE TABLE IF NOT EXISTS bookmarks (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -104,9 +105,18 @@ def load_hadith_collection(folder: Path, collection_key: str) -> list:
             num         = h.get("hadith_number")
             translation = h.get("text", "").strip()
             arabic      = h.get("arabic_text", "").strip()
+            
+            # Extract narrator from translation text
+            narrator = ""
+            if "Narrated" in translation:
+                parts = translation.split(":", 1)
+                if len(parts) > 1 and "Narrated" in parts[0]:
+                    narrator = parts[0].replace("Narrated ", "").strip()
+                    translation = parts[1].strip()
+
             if not num or not translation:
                 continue
-            rows.append((collection_key, chapter_name, int(num), arabic, translation))
+            rows.append((collection_key, chapter_name, int(num), arabic, translation, narrator))
     return rows
 
 def build():
@@ -119,56 +129,70 @@ def build():
     conn.executescript(SCHEMA)
     print("✅ Schema created\n")
 
-    # Ayahs — flexible loader handling real data structure
-    # quran.json: list of 114 surahs [{surah_num, surah_name, total_ayahs, ayahs:[...]}]
-    # Each ayah entry may have: ayah_num, text (translation), arabic, etc.
-    q_path = Path("data/quran.json")
-    q_path_alt = Path("data/ayahs/quran.json")
-    p = q_path if q_path.exists() else q_path_alt
+    # 1. Surahs — from surah_metadata.json
+    m_path = Path("data/ayahs/surah_metadata.json")
+    if m_path.exists():
+        with open(m_path, encoding="utf-8") as f:
+            metadata = json.load(f)
+        s_rows = []
+        for s in metadata:
+            s_rows.append((
+                s["surah_number"],
+                s["name_urdu"], # Use Urdu name as Arabic name
+                s["name_english"].title(),
+                s["name_english"].title(),
+                "Meccan", # Default if not in json
+                s["total_ayat"]
+            ))
+        conn.executemany("INSERT OR IGNORE INTO surahs VALUES(?,?,?,?,?,?)", s_rows)
+        print(f"✅ Surahs: {len(s_rows)} rows inserted")
 
-    if p.exists():
-        with open(p, encoding="utf-8") as f:
-            raw = json.load(f)
+    # 2. Ayahs — Merging arabic.json and quran.json
+    a_path = Path("data/ayahs/arabic.json")
+    q_path = Path("data/quran.json")
+    
+    if a_path.exists() and q_path.exists():
+        with open(a_path, encoding="utf-8") as f:
+            arabic_data = json.load(f)
+        with open(q_path, encoding="utf-8") as f:
+            quran_data = json.load(f)
+
+        # Create translation map: (surah, ayah) -> translation
+        trans_map = {}
+        for surah in quran_data:
+            s_num = surah["surah_num"]
+            for ayah in surah["ayahs"]:
+                a_num = ayah["ayah_num"]
+                trans_map[(s_num, a_num)] = ayah["translation"]
 
         rows = []
-        row_id = 1
-
-        if isinstance(raw, list) and raw and "ayahs" in raw[0]:
-            # Structure: [{surah_num, surah_name, total_ayahs, ayahs:[...]}]
-            for surah in raw:
-                s_num = int(surah.get("surah_num") or surah.get("surah_number") or 0)
-                for i, ayah in enumerate(surah.get("ayahs", []), 1):
-                    if isinstance(ayah, str):
-                        translation = ayah
-                        arabic = ""
-                        a_num = i
-                    elif isinstance(ayah, dict):
-                        # Real fields: ayah_num, translation
-                        translation = (ayah.get("translation") or ayah.get("text")
-                                      or ayah.get("translation_english") or "").strip()
-                        arabic = (ayah.get("arabic") or ayah.get("arabic_text")
-                                  or ayah.get("arabic_text_hafs") or "").strip()
-                        a_num = int(ayah.get("ayah_num") or ayah.get("ayah_number") or i)
-                    else:
-                        continue
-                    rows.append((row_id, s_num, a_num, 1, 1, arabic, arabic, translation))
-                    row_id += 1
-
-        elif isinstance(raw, list) and raw and isinstance(raw[0], dict) and "surah_number" in raw[0]:
-            # Flat list: [{id, surah_number, ayah_number, arabic_text_hafs, translation_english}]
-            for a in raw:
-                rows.append((
-                    a.get("id", row_id), a["surah_number"], a["ayah_number"],
-                    a.get("page_number", 1), a.get("juz_number", 1),
-                    a.get("arabic_text_hafs", ""), a.get("arabic_text_warsh", a.get("arabic_text_hafs", "")),
-                    a.get("translation_english", "")
-                ))
-                row_id += 1
+        for i, a in enumerate(arabic_data, 1):
+            s_num = a["surah_number"]
+            a_num = int(a["ayat_number"])
+            arabic = a["arabic_text"]
+            translation = trans_map.get((s_num, a_num), "")
+            rows.append((i, s_num, a_num, 1, 1, arabic, arabic, translation))
 
         conn.executemany("INSERT OR IGNORE INTO ayahs VALUES(?,?,?,?,?,?,?,?)", rows)
-        print(f"✅ Ayahs: {len(rows)} rows inserted")
+        print(f"✅ Ayahs: {len(rows)} rows inserted from arabic.json")
     else:
-        print("⚠  quran.json not found — skipping ayahs")
+        print("⚠  arabic.json or quran.json missing — falling back to old logic")
+        # [Old fallback logic remains or simplified]
+        p = q_path if q_path.exists() else Path("data/ayahs/quran.json")
+        if p.exists():
+            with open(p, encoding="utf-8") as f:
+                raw = json.load(f)
+            rows = []; row_id = 1
+            if isinstance(raw, list) and raw and "ayahs" in raw[0]:
+                for surah in raw:
+                    s_num = int(surah.get("surah_num") or 0)
+                    for i, ayah in enumerate(surah.get("ayahs", []), 1):
+                        translation = ayah.get("translation", "")
+                        arabic = ayah.get("arabic", "")
+                        a_num = int(ayah.get("ayah_num") or i)
+                        rows.append((row_id, s_num, a_num, 1, 1, arabic, arabic, translation))
+                        row_id += 1
+            conn.executemany("INSERT OR IGNORE INTO ayahs VALUES(?,?,?,?,?,?,?,?)", rows)
 
     # Tafsir — 3 books (single .json files; fields: ayat_number, tafseer)
     for book_name in ["ibn_kathir", "maarif", "ibn_abbas"]:
@@ -207,7 +231,7 @@ def build():
         if not rows:
             print(f"⚠  Hadith [{col_key}]: no rows extracted"); continue
         conn.executemany(
-            "INSERT OR IGNORE INTO hadith(collection,chapter_name,hadith_number,arabic_text,translation) VALUES(?,?,?,?,?)",
+            "INSERT OR IGNORE INTO hadith(collection,chapter_name,hadith_number,arabic_text,translation,narrator) VALUES(?,?,?,?,?,?)",
             rows)
         print(f"✅ Hadith [{col_key}]: {len(rows)}")
 

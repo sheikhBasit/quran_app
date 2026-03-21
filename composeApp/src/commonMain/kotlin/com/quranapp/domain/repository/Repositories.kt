@@ -14,8 +14,8 @@ interface QuranRepository {
 
 interface HadithRepository {
     suspend fun getCollections(): List<HadithCollection>
-    suspend fun getBookNumbers(collection: String): List<Int>
-    suspend fun getHadithByBook(collection: String, bookNumber: Int): List<Hadith>
+    suspend fun getChapterNames(collection: String): List<String>
+    suspend fun getHadithByChapter(collection: String, chapterName: String): List<Hadith>
     suspend fun searchHadith(query: String): List<Hadith>
 }
 

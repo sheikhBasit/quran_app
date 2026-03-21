@@ -10,6 +10,12 @@ plugins {
     alias(libs.plugins.kotlinSerialization)
 }
 
+compose.resources {
+    packageOfResClass = "com.quranapp"
+    generateResClass = always
+    publicResClass = true
+}
+
 kotlin {
     androidTarget {
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
@@ -37,6 +43,7 @@ kotlin {
             implementation(compose.foundation)
             implementation(compose.material3)
             implementation(compose.ui)
+            implementation(compose.materialIconsExtended)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
 
@@ -93,6 +100,14 @@ kotlin {
             implementation("com.google.android.gms:play-services-location:21.2.0")
         }
 
+        val androidInstrumentedTest by getting {
+            dependencies {
+                implementation(libs.compose.ui.test)
+                implementation(libs.androidx.test.junit)
+                implementation(libs.androidx.test.runner)
+            }
+        }
+
         // ── iOS ────────────────────────────────────────────────────────────
         iosMain.dependencies {
             implementation(libs.ktor.darwin)
@@ -111,6 +126,8 @@ android {
         targetSdk     = 35
         versionCode   = 1
         versionName   = "1.0.0"
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     packaging {

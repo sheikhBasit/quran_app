@@ -15,6 +15,7 @@ import kotlin.test.*
 @OptIn(ExperimentalCoroutinesApi::class)
 class QuranViewModelTest {
     private val dispatcher = StandardTestDispatcher()
+    private val getSurahList: GetSurahListUseCase = mockk()
     private val getAyahsBySurah: GetAyahsBySurahUseCase = mockk()
     private val getAyahsForPage: GetAyahsForPageUseCase = mockk()
     private val getTafsir: GetTafsirUseCase = mockk()
@@ -22,7 +23,8 @@ class QuranViewModelTest {
 
     @BeforeTest fun setup() {
         Dispatchers.setMain(dispatcher)
-        vm = QuranViewModel(getAyahsBySurah, getAyahsForPage, getTafsir)
+        coEvery { getSurahList() } returns Result.success(emptyList())
+        vm = QuranViewModel(getSurahList, getAyahsBySurah, getAyahsForPage, getTafsir)
     }
 
     @AfterTest fun teardown() { Dispatchers.resetMain() }
@@ -81,6 +83,27 @@ class QuranViewModelTest {
         assertEquals(ReadingMode.SCROLL, vm.uiState.value.readingMode)
         vm.toggleReadingMode()
         assertEquals(ReadingMode.PAGE, vm.uiState.value.readingMode)
+    }
+
+    @Test fun `loadTafsir populates tafsiers on success`() = runTest {
+        val fakeTafsir = TafsirEntry("book", "content")
+        coEvery { getTafsir(any(), any()) } returns Result.success(listOf(fakeTafsir))
+        
+        vm.loadTafsir(TestFixtures.fakeAyah)
+        advanceUntilIdle()
+        
+        assertEquals(1, vm.uiState.value.tafsiers.size)
+        assertEquals("content", vm.uiState.value.tafsiers.first().content)
+    }
+
+    @Test fun `loadPage populates ayahs on success`() = runTest {
+        coEvery { getAyahsForPage(1) } returns Result.success(listOf(TestFixtures.fakeAyah))
+        
+        vm.loadPage(1)
+        advanceUntilIdle()
+        
+        assertEquals(1, vm.uiState.value.ayahs.size)
+        assertEquals(1, vm.uiState.value.currentPage)
     }
 }
 

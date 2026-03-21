@@ -8,10 +8,12 @@ class GetCollectionsUseCase(private val repo: HadithRepository) {
         runCatching { repo.getCollections() }
 }
 
-class GetHadithByBookUseCase(private val repo: HadithRepository) {
-    suspend operator fun invoke(collection: String, bookNumber: Int): Result<List<Hadith>> {
+class GetHadithByChapterUseCase(private val repo: HadithRepository) {
+    suspend operator fun invoke(collection: String, chapterName: String): Result<List<Hadith>> {
         if (collection.isBlank())
             return Result.failure(IllegalArgumentException("Collection name cannot be empty"))
-        return runCatching { repo.getHadithByBook(collection, bookNumber) }
+        if (chapterName.isBlank())
+            return Result.failure(IllegalArgumentException("Chapter name cannot be empty"))
+        return runCatching { repo.getHadithByChapter(collection, chapterName) }
     }
 }

@@ -7,6 +7,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.quranapp.Res
+import com.quranapp.UthmanicHafs1Ver18
 
 // ─── Colors ───────────────────────────────────────────────────────────────────
 
@@ -39,6 +41,14 @@ private val LightColorScheme = lightColorScheme(
 )
 
 // ─── Typography ───────────────────────────────────────────────────────────────
+
+@OptIn(org.jetbrains.compose.resources.ExperimentalResourceApi::class)
+@Composable
+fun getQuranFontFamily(): androidx.compose.ui.text.font.FontFamily {
+    return androidx.compose.ui.text.font.FontFamily(
+        org.jetbrains.compose.resources.Font(Res.font.UthmanicHafs1Ver18)
+    )
+}
 
 private val QuranTypography = Typography(
     bodyLarge = TextStyle(

@@ -2,6 +2,7 @@ package com.quranapp.di
 
 import com.quranapp.data.remote.ChatbotRemoteDataSource
 import com.quranapp.data.repository.*
+import com.quranapp.db.QuranDatabase
 import com.quranapp.domain.repository.*
 import com.quranapp.domain.usecase.chatbot.SendChatMessageUseCase
 import com.quranapp.domain.usecase.hadith.*
@@ -10,6 +11,7 @@ import com.quranapp.domain.usecase.qibla.GetQiblaDirectionUseCase
 import com.quranapp.domain.usecase.quran.*
 import com.quranapp.domain.usecase.search.SearchUseCase
 import com.quranapp.domain.usecase.userdata.*
+import com.quranapp.util.DatabaseDriverFactory
 import com.quranapp.viewmodel.*
 import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -28,25 +30,54 @@ val networkModule = module {
     single { ChatbotRemoteDataSource(get()) }
 }
 
+val databaseModule = module {
+    single { QuranDatabase(get<DatabaseDriverFactory>().createDriver()) }
+}
+
 val repositoryModule = module {
     single<ChatbotRepository> { ChatbotRepositoryImpl(get()) }
-    // QuranRepository, HadithRepository etc. added in Phase 2 after SQLDelight setup
+    single<QuranRepository> { QuranRepositoryImpl(get()) }
+    single<HadithRepository> { HadithRepositoryImpl(get()) }
+    single<UserDataRepository> { UserDataRepositoryImpl(get()) }
+    single<SearchRepository> { SearchRepositoryImpl(get()) }
 }
 
 val useCaseModule = module {
-    // Prayer & Qibla (no repo needed — pure calculation)
+    // Prayer & Qibla
     factory { GetPrayerTimesUseCase() }
     factory { GetNextPrayerUseCase(get()) }
     factory { GetQiblaDirectionUseCase() }
+    
     // Chatbot
     factory { SendChatMessageUseCase(get()) }
+    
+    // Quran
+    factory { GetSurahListUseCase(get()) }
+    factory { GetAyahsBySurahUseCase(get()) }
+    factory { GetAyahsForPageUseCase(get()) }
+    factory { GetTafsirUseCase(get()) }
+    
+    // Hadith
+    factory { GetCollectionsUseCase(get()) }
+    factory { GetHadithByChapterUseCase(get()) }
+    factory { GetHadithChaptersUseCase(get()) }
+    
+    // User Data
+    factory { ToggleBookmarkUseCase(get()) }
+    factory { SetHighlightUseCase(get()) }
+    factory { SaveNoteUseCase(get()) }
+
+    // Search
+    factory { SearchUseCase(get()) }
 }
 
 val viewModelModule = module {
     factory { ChatbotViewModel(get()) }
-    // Other ViewModels added as each phase completes
+    factory { QuranViewModel(get(), get(), get(), get()) }
+    factory { HadithViewModel(get(), get(), get()) }
+    factory { SearchViewModel(get()) }
 }
 
 val appModule = module {
-    includes(networkModule, repositoryModule, useCaseModule, viewModelModule)
+    includes(networkModule, databaseModule, repositoryModule, useCaseModule, viewModelModule)
 }

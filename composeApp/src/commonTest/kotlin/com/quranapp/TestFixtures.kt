@@ -57,7 +57,7 @@ object TestFixtures {
     val fakeHadith = Hadith(
         id = 1L,
         collection = "bukhari",
-        bookNumber = 1,
+        chapterName = "Revelation",
         hadithNumber = 1,
         arabicText = "إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ",
         translation = "Actions are judged by intentions, and every person will get the reward according to what he has intended.",
@@ -67,7 +67,7 @@ object TestFixtures {
     val fakeHadith2 = Hadith(
         id = 2L,
         collection = "muslim",
-        bookNumber = 1,
+        chapterName = "Faith",
         hadithNumber = 1,
         arabicText = "",
         translation = "Islam is built upon five pillars.",

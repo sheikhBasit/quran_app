@@ -41,7 +41,7 @@ data class TafsirEntry(
 data class Hadith(
     val id: Long,
     val collection: String,
-    val bookNumber: Int,
+    val chapterName: String,
     val hadithNumber: Int,
     val arabicText: String,
     val translation: String,

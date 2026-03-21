@@ -12,6 +12,7 @@ import java.util.UUID
 // ─── Quran ────────────────────────────────────────────────────────────────────
 
 data class QuranUiState(
+    val surahs: List<Surah> = emptyList(),
     val ayahs: List<Ayah> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null,
@@ -20,9 +21,11 @@ data class QuranUiState(
     val readingMode: ReadingMode = ReadingMode.SCROLL,
     val currentPage: Int = 1,
     val currentSurah: Int = 1,
+    val tafsiers: List<TafsirEntry> = emptyList(),
 )
 
 class QuranViewModel(
+    private val getSurahList: GetSurahListUseCase,
     private val getAyahsBySurah: GetAyahsBySurahUseCase,
     private val getAyahsForPage: GetAyahsForPageUseCase,
     private val getTafsir: GetTafsirUseCase,
@@ -31,11 +34,29 @@ class QuranViewModel(
     private val _uiState = MutableStateFlow(QuranUiState())
     val uiState: StateFlow<QuranUiState> = _uiState.asStateFlow()
 
+    init {
+        loadSurahList()
+    }
+
+    fun loadSurahList() {
+        screenModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, error = null) }
+            try {
+                val surahs = getSurahList().getOrThrow()
+                println("QuranViewModel: Loaded ${surahs.size} surahs")
+                _uiState.update { it.copy(surahs = surahs, isLoading = false) }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = e.message, isLoading = false) }
+            }
+        }
+    }
+
     fun loadSurah(surahNumber: Int) {
         screenModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             try {
                 val ayahs = getAyahsBySurah(surahNumber).getOrThrow()
+                println("QuranViewModel: Loaded ${ayahs.size} ayahs for surah $surahNumber")
                 _uiState.update { it.copy(ayahs = ayahs, isLoading = false, currentSurah = surahNumber) }
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = e.message, isLoading = false) }
@@ -45,12 +66,24 @@ class QuranViewModel(
 
     fun loadPage(pageNumber: Int) {
         screenModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
+            _uiState.update { it.copy(isLoading = true, error = null, currentPage = pageNumber) }
             try {
                 val ayahs = getAyahsForPage(pageNumber).getOrThrow()
-                _uiState.update { it.copy(ayahs = ayahs, isLoading = false, currentPage = pageNumber) }
+                _uiState.update { it.copy(ayahs = ayahs, isLoading = false) }
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = e.message, isLoading = false) }
+            }
+        }
+    }
+
+    fun loadTafsir(ayah: Ayah) {
+        screenModelScope.launch {
+            // We don't set isLoading=true here to avoid flickering the main reader
+            try {
+                val entries = getTafsir(ayah.surahNumber, ayah.ayahNumber).getOrThrow()
+                _uiState.update { it.copy(tafsiers = entries) }
+            } catch (e: Exception) {
+                // Handle error silently or log it
             }
         }
     }
