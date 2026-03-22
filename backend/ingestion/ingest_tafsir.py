@@ -6,7 +6,7 @@ Fields: surah_number, ayat_number, tafseer
 import json, asyncio
 from pathlib import Path
 import asyncpg
-from app.rag.embedder import embed_passage
+from app.rag.embedder import embed_passages
 from app.config import settings
 
 TAFSIR_BOOKS = ["ibn_kathir", "maarif", "ibn_abbas"]
@@ -45,41 +45,44 @@ async def ingest():
     conn = await asyncpg.connect(settings.database_url.replace("+asyncpg", ""))
 
     for book_name in TAFSIR_BOOKS:
+        total = 0
         entries = load_tafsir(book_name)
         if not entries:
             print(f"⚠  Skipping {book_name} — no entries found")
             continue
 
-        batch, total = [], 0
-
-        for entry in entries:
-            content  = get_content(entry)
-            ayah_num = get_ayah_num(entry)
-            surah    = entry.get("surah_number")
-            if not content or not ayah_num or not surah:
-                continue
-            embedding = embed_passage(content)
-            batch.append((surah, ayah_num, book_name, content, embedding))
-
-            if len(batch) >= BATCH_SIZE:
-                await conn.executemany(
-                    "INSERT INTO tafsir_embeddings"
-                    "(surah_number,ayah_number,book_name,content,embedding) "
-                    "VALUES($1,$2,$3,$4,$5::vector) ON CONFLICT DO NOTHING",
-                    batch
-                )
-                total += len(batch)
-                print(f"  [{book_name}] {total}/{len(entries)}...", end="\r")
-                batch = []
-
-        if batch:
+        print(f"🚀 Embedding and Ingesting {len(entries)} entries for {book_name}...")
+        EMBED_BATCH_SIZE = 64
+        for i in range(0, len(entries), EMBED_BATCH_SIZE):
+            chunk = entries[i : i + EMBED_BATCH_SIZE]
+            
+            contents, db_batch_meta = [], []
+            for entry in chunk:
+                content  = get_content(entry)
+                ayah_num = get_ayah_num(entry)
+                surah    = entry.get("surah_number")
+                if not content or not ayah_num or not surah:
+                    continue
+                contents.append(content)
+                db_batch_meta.append((int(surah), int(ayah_num), book_name, content))
+            
+            if not contents: continue
+            
+            embeddings = embed_passages(contents)
+            
+            db_batch = []
+            for (surah, ayah, book, content), emb in zip(db_batch_meta, embeddings):
+                vector_str = "[" + ",".join(map(str, emb)) + "]"
+                db_batch.append((surah, ayah, book, content, vector_str))
+                
             await conn.executemany(
                 "INSERT INTO tafsir_embeddings"
                 "(surah_number,ayah_number,book_name,content,embedding) "
                 "VALUES($1,$2,$3,$4,$5::vector) ON CONFLICT DO NOTHING",
-                batch
+                db_batch
             )
-            total += len(batch)
+            total += len(chunk)
+            print(f"  [{book_name}] {total}/{len(entries)}...", end="\r")
 
         print(f"\n✅ Tafsir [{book_name}]: {total} entries ingested")
 

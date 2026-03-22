@@ -9,9 +9,10 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Pre-download embedding model at build time — avoids cold start delay
-RUN python -c "from sentence_transformers import SentenceTransformer; \
-               SentenceTransformer('intfloat/multilingual-e5-small')"
+# Bake models into the image so startup is instant
+RUN python -c "from sentence_transformers import SentenceTransformer, CrossEncoder; \
+    SentenceTransformer('intfloat/multilingual-e5-small'); \
+    CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')"
 
 COPY . .
 

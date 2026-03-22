@@ -24,7 +24,7 @@ def test_chat_response_has_required_fields():
     with patch("app.routers.chat.retrieve", new_callable=AsyncMock) as mock_r, \
          patch("app.routers.chat.get_llm_response", new_callable=AsyncMock) as mock_llm:
         mock_r.return_value = {
-            "ayahs": [{"surah_number": 9, "ayah_number": 60}],
+            "ayahs": [{"surah_number": 9, "ayah_number": 60, "content": "Zakat is obligatory"}],
             "hadiths": [],
             "tafsir": [],
         }

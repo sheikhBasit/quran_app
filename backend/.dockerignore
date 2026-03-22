@@ -1,0 +1,12 @@
+.git
+.gradle
+.idea
+build/
+composeApp/build/
+iosApp/
+data/
+*.db
+*.sqlite
+__pycache__/
+*.pyc
+.env
