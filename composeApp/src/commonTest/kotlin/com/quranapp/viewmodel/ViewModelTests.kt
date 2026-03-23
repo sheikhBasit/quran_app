@@ -5,8 +5,9 @@ import com.quranapp.domain.model.*
 import com.quranapp.domain.usecase.quran.*
 import com.quranapp.domain.usecase.chatbot.StreamChatMessageUseCase
 import kotlinx.coroutines.flow.flow
-import io.mockk.coEvery
-import io.mockk.mockk
+import com.quranapp.domain.repository.ChatHistoryRepository
+import io.mockk.*
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -112,11 +113,13 @@ class QuranViewModelTest {
 class ChatbotViewModelTest {
     private val dispatcher = StandardTestDispatcher()
     private val streamChatMessage: StreamChatMessageUseCase = mockk()
+    private val historyRepository: ChatHistoryRepository = mockk()
     private lateinit var vm: ChatbotViewModel
 
     @BeforeTest fun setup() {
         Dispatchers.setMain(dispatcher)
-        vm = ChatbotViewModel(streamChatMessage)
+        coEvery { historyRepository.getAllSessions() } returns flow { emit(emptyList()) }
+        vm = ChatbotViewModel(streamChatMessage, historyRepository)
     }
 
     @AfterTest fun teardown() { Dispatchers.resetMain() }
@@ -127,7 +130,9 @@ class ChatbotViewModelTest {
     }
 
     @Test fun `sendMessage adds user message immediately`() = runTest {
-        coEvery { streamChatMessage(any()) } returns flow {
+        coEvery { historyRepository.saveSession(any<ChatSession>()) } returns Unit
+        coEvery { historyRepository.saveMessage(any<String>(), any<ChatMessage>()) } returns Unit
+        coEvery { streamChatMessage(any<String>(), any<List<ChatMessage>>()) } returns flow {
             emit("Test")
         }
         vm.sendMessage("What is patience?")
@@ -137,7 +142,9 @@ class ChatbotViewModelTest {
     }
 
     @Test fun `sendMessage adds assistant response from flow tokens`() = runTest {
-        coEvery { streamChatMessage(any()) } returns flow {
+        coEvery { historyRepository.saveSession(any<ChatSession>()) } returns Unit
+        coEvery { historyRepository.saveMessage(any<String>(), any<ChatMessage>()) } returns Unit
+        coEvery { streamChatMessage(any<String>(), any<List<ChatMessage>>()) } returns flow {
             emit("Patience ")
             emit("is ")
             emit("key.")
@@ -152,7 +159,9 @@ class ChatbotViewModelTest {
     }
 
     @Test fun `sendMessage shows error connection message on failure`() = runTest {
-        coEvery { streamChatMessage(any()) } returns flow {
+        coEvery { historyRepository.saveSession(any<ChatSession>()) } returns Unit
+        coEvery { historyRepository.saveMessage(any<String>(), any<ChatMessage>()) } returns Unit
+        coEvery { streamChatMessage(any<String>(), any<List<ChatMessage>>()) } returns flow {
             throw RuntimeException("No internet")
         }
         vm.sendMessage("test")
