@@ -18,6 +18,8 @@ import com.quranapp.ui.screens.hadith.HadithCollectionsScreen
 import com.quranapp.ui.screens.search.SearchScreen
 import com.quranapp.ui.screens.chatbot.ChatbotScreen
 import com.quranapp.ui.screens.settings.SettingsScreen
+import cafe.adriel.voyager.koin.getScreenModel
+import com.quranapp.viewmodel.SettingsViewModel
 
 @Composable
 fun AppNavigation() {
@@ -112,6 +114,6 @@ object SettingsTab : Tab {
 
     @Composable
     override fun Content() {
-        SettingsScreen()
+        SettingsScreen(getScreenModel())
     }
 }

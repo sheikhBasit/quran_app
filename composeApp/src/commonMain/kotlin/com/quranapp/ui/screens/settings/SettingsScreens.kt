@@ -6,13 +6,21 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import com.quranapp.viewmodel.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen() {
+fun SettingsScreen(viewModel: SettingsViewModel) {
+    val themeMode by viewModel.themeMode.collectAsState()
+    val showTranslation by viewModel.showTranslation.collectAsState()
+    val notificationsEnabled by viewModel.notificationsEnabled.collectAsState()
+    val arabicFontSize by viewModel.arabicFontSize.collectAsState()
+
     Scaffold(
         topBar = { TopAppBar(title = { Text("Settings") }) }
     ) { padding ->
@@ -22,13 +30,14 @@ fun SettingsScreen() {
         ) {
             item { SettingsSectionHeader("Appearance") }
             item {
-                var darkMode by remember { mutableStateOf(false) }
                 SettingsToggleItem(
                     icon = Icons.Default.DarkMode,
                     title = "Dark Mode",
                     subtitle = "Use dark theme throughout the app",
-                    checked = darkMode,
-                    onCheckedChange = { darkMode = it }
+                    checked = themeMode == "dark",
+                    onCheckedChange = { isChecked ->
+                        viewModel.setThemeMode(if (isChecked) "dark" else "light")
+                    }
                 )
             }
             
@@ -42,26 +51,40 @@ fun SettingsScreen() {
                 )
             }
             item {
-                var showTranslation by remember { mutableStateOf(true) }
                 SettingsToggleItem(
                     icon = Icons.Default.Translate,
                     title = "Show Translation",
                     subtitle = "Display english translation in reader",
                     checked = showTranslation,
-                    onCheckedChange = { showTranslation = it }
+                    onCheckedChange = { viewModel.setShowTranslation(it) }
+                )
+            }
+            
+            item {
+                ListItem(
+                    leadingContent = { Icon(Icons.Default.TextFields, contentDescription = null) },
+                    headlineContent = { Text("Arabic Font Size") },
+                    supportingContent = {
+                        Slider(
+                            value = arabicFontSize,
+                            onValueChange = { viewModel.setArabicFontSize(it) },
+                            valueRange = 20f..48f,
+                            steps = 14
+                        )
+                    },
+                    trailingContent = { Text("${arabicFontSize.toInt()}sp") }
                 )
             }
 
             item { HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp)) }
             item { SettingsSectionHeader("Notifications") }
             item {
-                var prayerNotifs by remember { mutableStateOf(true) }
                 SettingsToggleItem(
                     icon = Icons.Default.Notifications,
                     title = "Prayer Times",
                     subtitle = "Get notified for daily prayers",
-                    checked = prayerNotifs,
-                    onCheckedChange = { prayerNotifs = it }
+                    checked = notificationsEnabled,
+                    onCheckedChange = { viewModel.setNotificationsEnabled(it) }
                 )
             }
 
@@ -71,7 +94,7 @@ fun SettingsScreen() {
                 SettingsClickableItem(
                     icon = Icons.Default.Info,
                     title = "Version",
-                    subtitle = "1.0.0 (Alpha)"
+                    subtitle = "1.0.1 (Phase 11)"
                 )
             }
             item {
