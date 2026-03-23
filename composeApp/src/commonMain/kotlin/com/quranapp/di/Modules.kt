@@ -89,10 +89,12 @@ val useCaseModule = module {
 
 val viewModelModule = module {
     factory { ChatbotViewModel(get(), get()) }
-    factory { QuranViewModel(get(), get(), get(), get()) }
+    factory { QuranViewModel(get(), get(), get(), get(), get()) }
     factory { HadithViewModel(get(), get(), get()) }
     factory { SearchViewModel(get()) }
     factory { SettingsViewModel(get()) }
+    factory { PrayerViewModel(get(), get(), get()) }
+    factory { QiblaViewModel(get(), get(), get()) }
 }
 
 val appModule = module {

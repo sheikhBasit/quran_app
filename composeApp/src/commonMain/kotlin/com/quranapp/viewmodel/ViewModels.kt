@@ -5,10 +5,14 @@ import cafe.adriel.voyager.core.model.screenModelScope
 import com.quranapp.domain.model.*
 import com.quranapp.domain.repository.ChatHistoryRepository
 import com.quranapp.domain.usecase.chatbot.StreamChatMessageUseCase
+import com.quranapp.domain.usecase.hadith.*
+import com.quranapp.domain.usecase.prayer.*
+import com.quranapp.domain.usecase.qibla.GetQiblaDirectionUseCase
 import com.quranapp.domain.usecase.quran.*
+import com.quranapp.domain.repository.SettingsRepository
 import com.quranapp.util.randomUUID
 import com.quranapp.util.randomUUID
-import com.quranapp.util.currentTimeMillis
+import com.quranapp.util.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -25,6 +29,7 @@ data class QuranUiState(
     val currentPage: Int = 1,
     val currentSurah: Int = 1,
     val tafsiers: List<TafsirEntry> = emptyList(),
+    val arabicFontSize: Float = 28f,
 )
 
 class QuranViewModel(
@@ -32,6 +37,7 @@ class QuranViewModel(
     private val getAyahsBySurah: GetAyahsBySurahUseCase,
     private val getAyahsForPage: GetAyahsForPageUseCase,
     private val getTafsir: GetTafsirUseCase,
+    private val settingsRepository: SettingsRepository,
 ) : ScreenModel {
 
     private val _uiState = MutableStateFlow(QuranUiState())
@@ -39,6 +45,17 @@ class QuranViewModel(
 
     init {
         loadSurahList()
+        // Sync Settings
+        screenModelScope.launch {
+            settingsRepository.showTranslation.collect { show ->
+                _uiState.update { it.copy(showTranslation = show) }
+            }
+        }
+        screenModelScope.launch {
+            settingsRepository.arabicFontSize.collect { size ->
+                _uiState.update { it.copy(arabicFontSize = size) }
+            }
+        }
     }
 
     fun loadSurahList() {
@@ -224,6 +241,85 @@ class ChatbotViewModel(
             historyRepository.deleteSession(sessionId)
             if (_uiState.value.currentSessionId == sessionId) {
                 startNewSession()
+            }
+        }
+    }
+}
+
+// ─── Prayer ───────────────────────────────────────────────────────────────────
+
+data class PrayerUiState(
+    val times: PrayerTimesResult? = null,
+    val nextPrayer: NextPrayer? = null,
+    val isLoading: Boolean = false,
+    val error: String? = null
+)
+
+class PrayerViewModel(
+    private val getPrayerTimes: GetPrayerTimesUseCase,
+    private val getNextPrayer: GetNextPrayerUseCase,
+    private val locationProvider: LocationProvider
+) : ScreenModel {
+    private val _uiState = MutableStateFlow(PrayerUiState())
+    val uiState: StateFlow<PrayerUiState> = _uiState.asStateFlow()
+
+    init {
+        observeLocation()
+    }
+
+    private fun observeLocation() {
+        screenModelScope.launch {
+            locationProvider.getLocationFlow().collect { coords ->
+                val lat = coords?.latitude ?: 21.4225
+                val lon = coords?.longitude ?: 39.8262
+                loadPrayerTimes(lat, lon)
+            }
+        }
+    }
+
+    fun loadPrayerTimes(latitude: Double, longitude: Double) {
+        screenModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, error = null) }
+            try {
+                val times = getPrayerTimes(latitude, longitude).getOrThrow()
+                val next = getNextPrayer(latitude, longitude).getOrThrow()
+                _uiState.update { it.copy(times = times, nextPrayer = next, isLoading = false) }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = e.message, isLoading = false) }
+            }
+        }
+    }
+}
+
+// ─── Qibla ────────────────────────────────────────────────────────────────────
+
+class QiblaViewModel(
+    private val getQiblaDirection: GetQiblaDirectionUseCase,
+    private val locationProvider: LocationProvider,
+    private val compassSensor: CompassSensor
+) : ScreenModel {
+    private val _direction = MutableStateFlow(0.0)
+    val direction: StateFlow<Double> = _direction.asStateFlow()
+    
+    // Qibla direction relative to North
+    private val _qiblaBearing = MutableStateFlow(0.0)
+    val qiblaBearing: StateFlow<Double> = _qiblaBearing.asStateFlow()
+
+    init {
+        observeSensors()
+    }
+
+    private fun observeSensors() {
+        screenModelScope.launch {
+            locationProvider.getLocationFlow().collect { coords ->
+                val lat = coords?.latitude ?: 51.5074
+                val lon = coords?.longitude ?: -0.1278
+                _qiblaBearing.value = getQiblaDirection(lat, lon)
+            }
+        }
+        screenModelScope.launch {
+            compassSensor.getBearingFlow().collect { bearing ->
+                _direction.value = bearing.toDouble()
             }
         }
     }

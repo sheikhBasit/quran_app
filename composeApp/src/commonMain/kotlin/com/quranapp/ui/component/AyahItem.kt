@@ -22,6 +22,7 @@ fun AyahItem(
     script: QuranScript,
     onLongClick: () -> Unit,
     onTafsirClick: () -> Unit,
+    fontSize: Float = 28f,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -67,7 +68,7 @@ fun AyahItem(
         // Arabic Text
         ArabicText(
             text = ayah.arabicText(script),
-            fontSize = 32.sp,
+            fontSize = fontSize.sp,
             modifier = Modifier.fillMaxWidth()
         )
 

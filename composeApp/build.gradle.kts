@@ -80,6 +80,7 @@ kotlin {
 
             // Prayer times
             implementation(libs.adhan)
+            implementation(libs.datetime)
         }
 
         // ── Shared tests ───────────────────────────────────────────────────

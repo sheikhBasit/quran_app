@@ -1,5 +1,6 @@
 package com.quranapp.ui.screens.settings
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -12,6 +13,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.quranapp.viewmodel.SettingsViewModel
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
+import com.quranapp.ui.screens.prayer.PrayerTimesScreen
+import com.quranapp.ui.screens.qibla.QiblaScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -20,6 +25,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
     val showTranslation by viewModel.showTranslation.collectAsState()
     val notificationsEnabled by viewModel.notificationsEnabled.collectAsState()
     val arabicFontSize by viewModel.arabicFontSize.collectAsState()
+    val navigator = LocalNavigator.currentOrThrow
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("Settings") }) }
@@ -89,6 +95,25 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
             }
 
             item { HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp)) }
+            item { SettingsSectionHeader("Tools") }
+            item {
+                SettingsClickableItem(
+                    icon = Icons.Default.AccessTime,
+                    title = "Prayer Times",
+                    subtitle = "View today's prayer schedule",
+                    onClick = { navigator.push(PrayerTimesScreen) }
+                )
+            }
+            item {
+                SettingsClickableItem(
+                    icon = Icons.Default.Explore,
+                    title = "Qibla Finder",
+                    subtitle = "Find direction of Kaaba",
+                    onClick = { navigator.push(QiblaScreen) }
+                )
+            }
+
+            item { HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp)) }
             item { SettingsSectionHeader("About") }
             item {
                 SettingsClickableItem(
@@ -144,15 +169,11 @@ fun SettingsClickableItem(
     onClick: () -> Unit = {}
 ) {
     ListItem(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().clickable { onClick() },
         leadingContent = { Icon(icon, contentDescription = null) },
         headlineContent = { Text(title) },
         supportingContent = { Text(subtitle) }
     )
 }
 
-@Composable
-fun PrayerTimesScreen() { Text("Prayer Times") }
-
-@Composable
-fun QiblaScreen() { Text("Qibla") }
+// Moved to separate files: PrayerTimesScreen.kt and QiblaScreen.kt

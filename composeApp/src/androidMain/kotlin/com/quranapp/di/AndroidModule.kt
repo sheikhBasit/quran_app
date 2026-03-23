@@ -8,5 +8,8 @@ import org.koin.dsl.module
 actual val platformModule = module {
     single { DatabaseDriverFactory(androidContext()) }
     single { SettingsStore(androidContext()) }
+    single { com.quranapp.util.LocationProvider(androidContext()) }
+    single { com.quranapp.util.CompassSensor(androidContext()) }
+    single { com.quranapp.util.NotificationScheduler(androidContext()) }
     single(org.koin.core.qualifier.named("baseUrl")) { com.quranapp.BuildConfig.BACKEND_URL }
 }

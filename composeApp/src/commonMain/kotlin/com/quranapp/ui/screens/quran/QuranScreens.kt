@@ -76,7 +76,7 @@ object QuranHomeScreen : Screen {
                                 ) {
                                     ArabicText(
                                         text = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ",
-                                        fontSize = 28.sp,
+                                        fontSize = uiState.arabicFontSize.sp,
                                         color = MaterialTheme.colorScheme.primary
                                     )
                                     Spacer(modifier = Modifier.height(8.dp))
@@ -176,11 +176,12 @@ data class QuranReaderScreen(val surahNumber: Int) : Screen {
                                 .padding(padding)
                         ) {
                             items(uiState.ayahs) { ayah ->
-                                AyahItem(
-                                    ayah = ayah,
-                                    showTranslation = uiState.showTranslation,
-                                    script = uiState.script,
-                                    onLongClick = { 
+                                    AyahItem(
+                                        ayah = ayah,
+                                        showTranslation = uiState.showTranslation,
+                                        script = uiState.script,
+                                        fontSize = uiState.arabicFontSize,
+                                        onLongClick = { 
                                         selectedAyahForAnnotation = ayah
                                         showAnnotationSheet = true 
                                     },
@@ -214,6 +215,7 @@ data class QuranReaderScreen(val surahNumber: Int) : Screen {
                                         ayah = ayah,
                                         showTranslation = uiState.showTranslation,
                                         script = uiState.script,
+                                        fontSize = uiState.arabicFontSize,
                                         onLongClick = { 
                                             selectedAyahForAnnotation = ayah
                                             showAnnotationSheet = true 

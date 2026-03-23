@@ -4,6 +4,7 @@ import com.quranapp.TestFixtures
 import com.quranapp.domain.model.*
 import com.quranapp.domain.usecase.quran.*
 import com.quranapp.domain.usecase.chatbot.StreamChatMessageUseCase
+import com.quranapp.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.flow
 import com.quranapp.domain.repository.ChatHistoryRepository
 import io.mockk.*
@@ -21,12 +22,15 @@ class QuranViewModelTest {
     private val getAyahsBySurah: GetAyahsBySurahUseCase = mockk()
     private val getAyahsForPage: GetAyahsForPageUseCase = mockk()
     private val getTafsir: GetTafsirUseCase = mockk()
+    private val settingsRepository: SettingsRepository = mockk()
     private lateinit var vm: QuranViewModel
 
     @BeforeTest fun setup() {
         Dispatchers.setMain(dispatcher)
         coEvery { getSurahList() } returns Result.success(emptyList())
-        vm = QuranViewModel(getSurahList, getAyahsBySurah, getAyahsForPage, getTafsir)
+        every { settingsRepository.showTranslation } returns flowOf(true)
+        every { settingsRepository.arabicFontSize } returns flowOf(28f)
+        vm = QuranViewModel(getSurahList, getAyahsBySurah, getAyahsForPage, getTafsir, settingsRepository)
     }
 
     @AfterTest fun teardown() { Dispatchers.resetMain() }
@@ -106,6 +110,27 @@ class QuranViewModelTest {
         
         assertEquals(1, vm.uiState.value.ayahs.size)
         assertEquals(1, vm.uiState.value.currentPage)
+    }
+
+    @Test fun `settings repository updates reflect in uiState`() = runTest {
+        val showFlow = MutableStateFlow(true)
+        val sizeFlow = MutableStateFlow(28f)
+        every { settingsRepository.showTranslation } returns showFlow
+        every { settingsRepository.arabicFontSize } returns sizeFlow
+        
+        // Re-init VM to use these flows
+        val testVm = QuranViewModel(getSurahList, getAyahsBySurah, getAyahsForPage, getTafsir, settingsRepository)
+        
+        assertTrue(testVm.uiState.value.showTranslation)
+        assertEquals(28f, testVm.uiState.value.arabicFontSize)
+        
+        showFlow.value = false
+        sizeFlow.value = 35f
+        
+        advanceUntilIdle()
+        
+        assertFalse(testVm.uiState.value.showTranslation)
+        assertEquals(35f, testVm.uiState.value.arabicFontSize)
     }
 }
 
