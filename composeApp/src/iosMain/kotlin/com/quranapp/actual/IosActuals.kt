@@ -45,3 +45,6 @@ actual val platformModule = org.koin.dsl.module {
     single(org.koin.core.qualifier.named("baseUrl")) { "http://localhost:8000" }
     single { SettingsStore() }
 }
+
+actual fun randomUUID(): String = platform.Foundation.NSUUID().UUIDString()
+actual fun currentTimeMillis(): Long = (platform.Foundation.NSDate().timeIntervalSince1970 * 1000).toLong()

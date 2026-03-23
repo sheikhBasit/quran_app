@@ -43,6 +43,7 @@ val databaseModule = module {
 
 val repositoryModule = module {
     single<ChatbotRepository> { ChatbotRepositoryImpl(get()) }
+    single<ChatHistoryRepository> { ChatHistoryRepositoryImpl(get()) }
     single<QuranRepository> { QuranRepositoryImpl(get()) }
     single<HadithRepository> { HadithRepositoryImpl(get()) }
     single<UserDataRepository> { UserDataRepositoryImpl(get()) }
@@ -81,7 +82,7 @@ val useCaseModule = module {
 }
 
 val viewModelModule = module {
-    factory { ChatbotViewModel(get()) }
+    factory { ChatbotViewModel(get(), get()) }
     factory { QuranViewModel(get(), get(), get(), get()) }
     factory { HadithViewModel(get(), get(), get()) }
     factory { SearchViewModel(get()) }

@@ -3,11 +3,14 @@ package com.quranapp.viewmodel
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import com.quranapp.domain.model.*
+import com.quranapp.domain.repository.ChatHistoryRepository
 import com.quranapp.domain.usecase.chatbot.StreamChatMessageUseCase
 import com.quranapp.domain.usecase.quran.*
+import com.quranapp.util.randomUUID
+import com.quranapp.util.randomUUID
+import com.quranapp.util.currentTimeMillis
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import java.util.UUID
 
 // ─── Quran ────────────────────────────────────────────────────────────────────
 
@@ -99,38 +102,76 @@ class QuranViewModel(
     }
 }
 
+
 // ─── Chatbot ──────────────────────────────────────────────────────────────────
 
 data class ChatbotUiState(
     val messages: List<ChatMessage> = emptyList(),
     val isLoading: Boolean = false,
     val isOnline: Boolean = true,
+    val currentSessionId: String? = null
 )
 
 class ChatbotViewModel(
     private val streamChatMessageUseCase: StreamChatMessageUseCase,
+    private val historyRepository: ChatHistoryRepository
 ) : ScreenModel {
 
     private val _uiState = MutableStateFlow(ChatbotUiState())
     val uiState: StateFlow<ChatbotUiState> = _uiState.asStateFlow()
 
+    val sessions: Flow<List<ChatSession>> = historyRepository.getAllSessions()
+
+    init {
+        // Load the most recent session or create a new one
+        screenModelScope.launch {
+            historyRepository.getAllSessions().firstOrNull()?.firstOrNull()?.let { lastSession ->
+                loadSession(lastSession.id)
+            } ?: startNewSession()
+        }
+    }
+
+    fun startNewSession() {
+        val newId = randomUUID()
+        _uiState.update { it.copy(messages = emptyList(), currentSessionId = newId, isLoading = false) }
+    }
+
+    fun loadSession(sessionId: String) {
+        screenModelScope.launch {
+            val history = historyRepository.getMessagesBySession(sessionId)
+            _uiState.update { it.copy(messages = history, currentSessionId = sessionId, isLoading = false) }
+        }
+    }
+
     fun sendMessage(text: String) {
         if (text.isBlank()) return
+
+        val sessionId = _uiState.value.currentSessionId ?: randomUUID()
+        val isFirstMessage = _uiState.value.messages.isEmpty()
 
         // Capture history BEFORE adding the current user message
         val history = _uiState.value.messages
             .filter { !it.isLoading && !it.isStreaming && it.content.isNotBlank() }
             .takeLast(6)
 
-        val userMsgId = UUID.randomUUID().toString()
-        val userMsg = ChatMessage(id = userMsgId, role = ChatRole.USER, content = text)
+        val timestamp = currentTimeMillis()
+        val userMsg = ChatMessage(id = randomUUID(), role = ChatRole.USER, content = text, timestamp = timestamp)
         
-        val assistantMsgId = UUID.randomUUID().toString()
-        val loadingMsg = ChatMessage(id = assistantMsgId, role = ChatRole.ASSISTANT, content = "", isLoading = true, isStreaming = true)
+        val assistantMsgId = randomUUID()
+        val loadingMsg = ChatMessage(id = assistantMsgId, role = ChatRole.ASSISTANT, content = "", isLoading = true, isStreaming = true, timestamp = timestamp + 1)
 
-        _uiState.update { it.copy(messages = it.messages + userMsg + loadingMsg, isLoading = true) }
+        _uiState.update { it.copy(messages = it.messages + userMsg + loadingMsg, isLoading = true, currentSessionId = sessionId) }
 
         screenModelScope.launch {
+            // Save session if first message
+            if (isFirstMessage) {
+                val title = if (text.length > 50) text.take(47) + "..." else text
+                historyRepository.saveSession(ChatSession(sessionId, title, timestamp, text, timestamp))
+            }
+
+            // Save user message
+            historyRepository.saveMessage(sessionId, userMsg)
+
             try {
                 var fullContent = ""
                 streamChatMessageUseCase(text, history).collect { token ->
@@ -145,30 +186,44 @@ class ChatbotViewModel(
                     }
                 }
                 
-                // Mark streaming as complete
-                _uiState.update { state ->
-                    val updated = state.messages.map { msg ->
-                        if (msg.id == assistantMsgId) {
-                            msg.copy(isStreaming = false)
-                        } else msg
+                // Finalize assistant message
+                val finalAssistantMsg = _uiState.value.messages.find { it.id == assistantMsgId }?.copy(
+                    isStreaming = false,
+                    timestamp = currentTimeMillis()
+                )
+
+                if (finalAssistantMsg != null) {
+                    historyRepository.saveMessage(sessionId, finalAssistantMsg)
+                    
+                    _uiState.update { state ->
+                        val updated = state.messages.map { if (it.id == assistantMsgId) finalAssistantMsg else it }
+                        state.copy(messages = updated)
                     }
-                    state.copy(messages = updated)
                 }
             } catch (e: Exception) {
-                println("CHATBOT_ERROR: ${e.message} ${e.cause}")
-                e.printStackTrace()
+                println("CHATBOT_ERROR: ${e.message}")
+                val errorMsg = ChatMessage(
+                    id = assistantMsgId,
+                    role = ChatRole.ASSISTANT,
+                    content = "Sorry, I could not connect to the server. Please check your connection.",
+                    isLoading = false,
+                    isStreaming = false,
+                    timestamp = currentTimeMillis()
+                )
                 _uiState.update { state ->
-                    val updated = state.messages.map { msg ->
-                        if (msg.id == assistantMsgId) {
-                            msg.copy(
-                                content = "Sorry, I could not connect to the server. Please check your connection.",
-                                isLoading = false,
-                                isStreaming = false
-                            )
-                        } else msg
-                    }
+                    val updated = state.messages.map { if (it.id == assistantMsgId) errorMsg else it }
                     state.copy(messages = updated, isLoading = false)
                 }
+                historyRepository.saveMessage(sessionId, errorMsg)
+            }
+        }
+    }
+
+    fun deleteSession(sessionId: String) {
+        screenModelScope.launch {
+            historyRepository.deleteSession(sessionId)
+            if (_uiState.value.currentSessionId == sessionId) {
+                startNewSession()
             }
         }
     }

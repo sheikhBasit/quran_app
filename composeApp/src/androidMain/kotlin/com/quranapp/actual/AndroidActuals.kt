@@ -119,3 +119,6 @@ actual class NotificationScheduler(private val context: Context) {
         listOf("fajr", "dhuhr", "asr", "maghrib", "isha").forEach { cancelPrayerAlarm(it) }
     }
 }
+
+actual fun randomUUID(): String = java.util.UUID.randomUUID().toString()
+actual fun currentTimeMillis(): Long = System.currentTimeMillis()

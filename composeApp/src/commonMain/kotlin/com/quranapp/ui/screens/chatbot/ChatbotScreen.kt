@@ -5,6 +5,7 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import kotlinx.coroutines.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -38,10 +39,14 @@ object ChatbotScreen : Screen {
     @Composable
     override fun Content() {
         val viewModel = getScreenModel<ChatbotViewModel>()
-        val uiState by viewModel.uiState.collectAsState(ChatbotUiState())
+        val uiState by viewModel.uiState.collectAsState()
+        val sessions by viewModel.sessions.collectAsState(emptyList())
+        
         var inputText by remember { mutableStateOf("") }
         val listState = rememberLazyListState()
         val navigator = LocalNavigator.currentOrThrow
+        val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+        val scope = rememberCoroutineScope()
 
         // Auto-scroll to bottom when new messages arrive or content updates
         LaunchedEffect(uiState.messages.lastOrNull()?.content, uiState.messages.size) {
@@ -50,85 +55,181 @@ object ChatbotScreen : Screen {
             }
         }
 
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text("AI Quran Assistant") },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                )
-            },
-            bottomBar = {
-                Surface(tonalElevation = 2.dp) {
+        ModalNavigationDrawer(
+            drawerState = drawerState,
+            drawerContent = {
+                ModalDrawerSheet {
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                            .navigationBarsPadding()
-                            .imePadding(),
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        TextField(
-                            value = inputText,
-                            onValueChange = { inputText = it },
-                            modifier = Modifier.weight(1f),
-                            placeholder = { Text("Ask anything about Islam...") },
-                            colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color.Transparent,
-                                unfocusedContainerColor = Color.Transparent,
-                                disabledContainerColor = Color.Transparent,
-                            ),
-                            maxLines = 4
+                        Text(
+                            "Chat History",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.primary
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        IconButton(
-                            onClick = {
-                                if (inputText.isNotBlank()) {
-                                    viewModel.sendMessage(inputText)
-                                    inputText = ""
-                                }
-                            },
-                            enabled = inputText.isNotBlank() && !uiState.isLoading,
-                            colors = IconButtonDefaults.iconButtonColors(
-                                contentColor = MaterialTheme.colorScheme.primary
-                            )
+                        IconButton(onClick = { scope.launch { drawerState.close() } }) {
+                            Icon(Icons.Default.Close, contentDescription = "Close")
+                        }
+                    }
+                    
+                    Divider(modifier = Modifier.padding(horizontal = 16.dp))
+                    
+                    if (sessions.isEmpty()) {
+                        Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
+                            Text("No history yet", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            Icon(Icons.Default.Send, contentDescription = "Send")
+                            items(sessions) { session ->
+                                NavigationDrawerItem(
+                                    label = { 
+                                        Column {
+                                            Text(
+                                                text = session.title,
+                                                maxLines = 1,
+                                                fontWeight = if (uiState.currentSessionId == session.id) FontWeight.Bold else FontWeight.Normal
+                                            )
+                                            if (session.lastMessage.isNotBlank()) {
+                                                Text(
+                                                    text = session.lastMessage,
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    maxLines = 1,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            }
+                                        }
+                                    },
+                                    selected = uiState.currentSessionId == session.id,
+                                    onClick = { 
+                                        viewModel.loadSession(session.id)
+                                        scope.launch { drawerState.close() }
+                                    },
+                                    icon = { Icon(Icons.Default.Chat, contentDescription = null) },
+                                    badge = {
+                                        IconButton(onClick = { viewModel.deleteSession(session.id) }) {
+                                            Icon(
+                                                Icons.Default.Delete, 
+                                                contentDescription = "Delete",
+                                                tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f),
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                        }
+                                    },
+                                    modifier = Modifier.padding(horizontal = 8.dp),
+                                    shape = RoundedCornerShape(12.dp)
+                                )
+                            }
                         }
                     }
                 }
             }
-        ) { padding ->
-            Box(modifier = Modifier.fillMaxSize().padding(padding)) {
-                if (uiState.messages.isEmpty()) {
-                    Column(
-                        modifier = Modifier.align(Alignment.Center).padding(32.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            "Salam! I'm your AI assistant.",
-                            style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.primary
+        ) {
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        title = { Text("AI Quran Assistant") },
+                        navigationIcon = {
+                            IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                                Icon(Icons.Default.Menu, contentDescription = "History")
+                            }
+                        },
+                        actions = {
+                            IconButton(onClick = { 
+                                viewModel.startNewSession()
+                                scope.launch { drawerState.close() }
+                            }) {
+                                Icon(Icons.Default.Add, contentDescription = "New Chat")
+                            }
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                         )
-                        Text(
-                            "Ask me anything about the Quran, Hadith, or Islamic history.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 8.dp),
-                            textAlign = TextAlign.Center
-                        )
+                    )
+                },
+                bottomBar = {
+                    Surface(tonalElevation = 2.dp) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                                .navigationBarsPadding()
+                                .imePadding(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            TextField(
+                                value = inputText,
+                                onValueChange = { inputText = it },
+                                modifier = Modifier.weight(1f),
+                                placeholder = { Text("Ask anything about Islam...") },
+                                colors = TextFieldDefaults.colors(
+                                    focusedContainerColor = Color.Transparent,
+                                    unfocusedContainerColor = Color.Transparent,
+                                    disabledContainerColor = Color.Transparent,
+                                ),
+                                maxLines = 4
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            IconButton(
+                                onClick = {
+                                    if (inputText.isNotBlank()) {
+                                        viewModel.sendMessage(inputText)
+                                        inputText = ""
+                                    }
+                                },
+                                enabled = inputText.isNotBlank() && !uiState.isLoading,
+                                colors = IconButtonDefaults.iconButtonColors(
+                                    contentColor = MaterialTheme.colorScheme.primary
+                                )
+                            ) {
+                                Icon(Icons.Default.Send, contentDescription = "Send")
+                            }
+                        }
                     }
-                } else {
-                    LazyColumn(
-                        state = listState,
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        items(uiState.messages, key = { it.id }) { message ->
-                            ChatBubble(message)
+                }
+            ) { padding ->
+                Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+                    if (uiState.messages.isEmpty()) {
+                        Column(
+                            modifier = Modifier.align(Alignment.Center).padding(32.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                Icons.Default.AutoAwesome,
+                                contentDescription = null,
+                                modifier = Modifier.size(64.dp),
+                                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                "Salam! I'm your AI assistant.",
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                "Ask me anything about the Quran, Hadith, or Islamic history.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 8.dp),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    } else {
+                        LazyColumn(
+                            state = listState,
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            items(uiState.messages, key = { it.id }) { message ->
+                                ChatBubble(message)
+                            }
                         }
                     }
                 }

@@ -1,0 +1,37 @@
+CREATE TABLE chat_session (
+    id TEXT NOT NULL PRIMARY KEY,
+    title TEXT NOT NULL,
+    created_at INTEGER NOT NULL,
+    last_message TEXT NOT NULL,
+    last_updated INTEGER NOT NULL
+);
+
+CREATE TABLE chat_message_local (
+    id TEXT NOT NULL PRIMARY KEY,
+    session_id TEXT NOT NULL,
+    role TEXT NOT NULL,
+    content TEXT NOT NULL,
+    timestamp INTEGER NOT NULL,
+    FOREIGN KEY (session_id) REFERENCES chat_session(id) ON DELETE CASCADE
+);
+
+selectAllSessions:
+SELECT * FROM chat_session ORDER BY last_updated DESC;
+
+selectMessagesBySession:
+SELECT * FROM chat_message_local WHERE session_id = :sessionId 
+ORDER BY timestamp ASC;
+
+insertSession:
+INSERT OR REPLACE INTO chat_session VALUES (?, ?, ?, ?, ?);
+
+insertMessage:
+INSERT INTO chat_message_local VALUES (?, ?, ?, ?, ?);
+
+deleteSession:
+DELETE FROM chat_session WHERE id = ?;
+
+updateSessionMetadata:
+UPDATE chat_session 
+SET last_message = :lastMessage, last_updated = :lastUpdated 
+WHERE id = :id;

@@ -128,4 +128,13 @@ data class ChatMessage(
     val sources: ChatSources? = null,
     val isLoading: Boolean = false,
     val isStreaming: Boolean = false,
+    val timestamp: Long = 0L
+)
+
+data class ChatSession(
+    val id: String,
+    val title: String,
+    val createdAt: Long,
+    val lastMessage: String,
+    val lastUpdated: Long
 )

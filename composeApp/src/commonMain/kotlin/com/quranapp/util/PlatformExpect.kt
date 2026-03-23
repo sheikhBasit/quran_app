@@ -30,3 +30,6 @@ expect class NotificationScheduler {
     fun cancelPrayerAlarm(prayerName: String)
     fun cancelAllAlarms()
 }
+
+expect fun randomUUID(): String
+expect fun currentTimeMillis(): Long

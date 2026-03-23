@@ -14,6 +14,7 @@ adhan                   = "0.0.6"
 mockk                   = "1.13.12"
 androidx-activityCompose = "1.9.3"
 androidx-core-ktx       = "1.13.1"
+datetime                = "0.6.1"
 
 [libraries]
 # Compose Multiplatform
@@ -57,6 +58,7 @@ coroutines-test         = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-t
 
 # Serialization
 serialization-json      = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization-json" }
+datetime                = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetime" }
 
 # Multiplatform Settings (key-value store)
 mp-settings             = { module = "com.russhwolf:multiplatform-settings",            version.ref = "multiplatform-settings" }
