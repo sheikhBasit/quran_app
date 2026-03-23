@@ -12,7 +12,7 @@ from app.config import settings
 
 async def get_llm_response(system_prompt: str, messages: list[dict], history: list[dict] = []) -> str:
     """Call Groq API — OpenAI-compatible chat format."""
-    truncated_history = history[-6:] if history else []
+    truncated_history = history[-4:] if history else []
     payload = {
         "model": settings.llm_model,
         "messages": [{"role": "system", "content": system_prompt}] + truncated_history + messages,
@@ -36,7 +36,7 @@ async def get_llm_response(system_prompt: str, messages: list[dict], history: li
 
 async def stream_llm_response(system_prompt: str, messages: list[dict], history: list[dict] = []):
     """Stream response from Groq API."""
-    truncated_history = history[-6:] if history else []
+    truncated_history = history[-4:] if history else []
     payload = {
         "model": settings.llm_model,
         "messages": [{"role": "system", "content": system_prompt}] + truncated_history + messages,

@@ -39,20 +39,23 @@ def build_prompt(query: str, retrieved: dict) -> list[dict]:
     if retrieved["ayahs"]:
         parts.append("=== QURAN VERSES ===")
         for a in retrieved["ayahs"]:
-            parts.append(f"[Surah {a['surah_number']}:{a['ayah_number']}]\n{a['content']}")
+            content = a['content'][:300] + "..." if len(a['content']) > 300 else a['content']
+            parts.append(f"[Surah {a['surah_number']}:{a['ayah_number']}]\n{content}")
 
     if retrieved["hadiths"]:
         parts.append("\n=== HADITH ===")
         for h in retrieved["hadiths"]:
             col = h["collection"].title()
-            parts.append(f"[{col} #{h['hadith_number']}]\n{h['content']}")
+            content = h['content'][:300] + "..." if len(h['content']) > 300 else h['content']
+            parts.append(f"[{col} #{h['hadith_number']}]\n{content}")
 
     if retrieved["tafsir"]:
         parts.append("\n=== TAFSIR ===")
         for t in retrieved["tafsir"]:
             book = t["book_name"].replace("_", " ").title()
+            content = t['content'][:300] + "..." if len(t['content']) > 300 else t['content']
             parts.append(
-                f"[{book} on {t['surah_number']}:{t['ayah_number']}]\n{t['content']}"
+                f"[{book} on {t['surah_number']}:{t['ayah_number']}]\n{content}"
             )
 
     if not parts:

@@ -17,6 +17,7 @@ import com.quranapp.util.SettingsStore
 import com.quranapp.viewmodel.*
 import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import org.koin.dsl.module
@@ -27,6 +28,11 @@ val networkModule = module {
         HttpClient {
             install(ContentNegotiation) {
                 json(Json { ignoreUnknownKeys = true })
+            }
+            install(HttpTimeout) {
+                requestTimeoutMillis = 120_000
+                connectTimeoutMillis = 30_000
+                socketTimeoutMillis = 120_000
             }
         }
     }
