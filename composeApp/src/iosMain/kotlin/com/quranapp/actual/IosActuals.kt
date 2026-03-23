@@ -40,3 +40,8 @@ actual class NotificationScheduler {
         // TODO: Implement for iOS post-MVP
     }
 }
+
+actual val platformModule = org.koin.dsl.module {
+    single(org.koin.core.qualifier.named("baseUrl")) { "http://localhost:8000" }
+    single { SettingsStore() }
+}

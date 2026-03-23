@@ -1,0 +1,98 @@
+WARNING: We recommend using a newer Android Gradle plugin to use compileSdk = 35
+
+This Android Gradle plugin (8.5.2) was tested up to compileSdk = 34.
+
+You are strongly encouraged to update your project to use a newer
+Android Gradle plugin that has been tested with compileSdk = 35.
+
+If you are already using the latest version of the Android Gradle plugin,
+you may need to wait until a newer version with support for compileSdk = 35 is available.
+
+For more information refer to the compatibility table:
+https://d.android.com/r/tools/api-level-support
+
+To suppress this warning, add/update
+    android.suppressUnsupportedCompileSdk=35
+to this project's gradle.properties.
+> Task :composeApp:kmpPartiallyResolvedDependenciesChecker
+> Task :composeApp:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :composeApp:convertXmlValueResourcesForAndroidMain NO-SOURCE
+> Task :composeApp:copyNonXmlValueResourcesForAndroidMain NO-SOURCE
+> Task :composeApp:prepareComposeResourcesTaskForAndroidMain NO-SOURCE
+> Task :composeApp:generateResourceAccessorsForAndroidMain NO-SOURCE
+> Task :composeApp:convertXmlValueResourcesForCommonMain NO-SOURCE
+> Task :composeApp:copyNonXmlValueResourcesForCommonMain UP-TO-DATE
+> Task :composeApp:prepareComposeResourcesTaskForCommonMain UP-TO-DATE
+> Task :composeApp:generateResourceAccessorsForCommonMain UP-TO-DATE
+> Task :composeApp:generateActualResourceCollectorsForAndroidMain UP-TO-DATE
+> Task :composeApp:generateCommonMainQuranDatabaseInterface UP-TO-DATE
+> Task :composeApp:generateComposeResClass UP-TO-DATE
+> Task :composeApp:preBuild UP-TO-DATE
+> Task :composeApp:preDebugBuild UP-TO-DATE
+> Task :composeApp:generateDebugBuildConfig UP-TO-DATE
+> Task :composeApp:generateExpectResourceCollectorsForCommonMain UP-TO-DATE
+> Task :composeApp:convertXmlValueResourcesForAndroidDebug NO-SOURCE
+> Task :composeApp:copyNonXmlValueResourcesForAndroidDebug NO-SOURCE
+> Task :composeApp:prepareComposeResourcesTaskForAndroidDebug NO-SOURCE
+> Task :composeApp:generateResourceAccessorsForAndroidDebug NO-SOURCE
+> Task :composeApp:checkDebugAarMetadata UP-TO-DATE
+> Task :composeApp:generateDebugResValues UP-TO-DATE
+> Task :composeApp:mapDebugSourceSetPaths UP-TO-DATE
+> Task :composeApp:generateDebugResources UP-TO-DATE
+> Task :composeApp:mergeDebugResources UP-TO-DATE
+> Task :composeApp:packageDebugResources UP-TO-DATE
+> Task :composeApp:parseDebugLocalResources UP-TO-DATE
+> Task :composeApp:createDebugCompatibleScreenManifests UP-TO-DATE
+> Task :composeApp:extractDeepLinksDebug UP-TO-DATE
+> Task :composeApp:processDebugMainManifest UP-TO-DATE
+> Task :composeApp:processDebugManifest UP-TO-DATE
+> Task :composeApp:processDebugManifestForPackage UP-TO-DATE
+> Task :composeApp:processDebugResources UP-TO-DATE
+
+> Task :composeApp:compileDebugKotlinAndroid FAILED
+e: file:///home/basitdev/Me/Quran_App/composeApp/src/androidMain/kotlin/com/quranapp/util/AndroidSettingsStore.kt:4:22 Unresolved reference 'multiplatform'.
+e: file:///home/basitdev/Me/Quran_App/composeApp/src/androidMain/kotlin/com/quranapp/util/AndroidSettingsStore.kt:5:22 Unresolved reference 'multiplatform'.
+e: file:///home/basitdev/Me/Quran_App/composeApp/src/androidMain/kotlin/com/quranapp/util/AndroidSettingsStore.kt:8:16 The 'expect' and the 'actual' declarations are incompatible.
+  expect: public final expect fun createSettings(): <ERROR TYPE REF: Symbol not found for ObservableSettings>
+  actual: public final actual fun createSettings(): <ERROR TYPE REF: Symbol not found for ObservableSettings>
+  reason: the return types are different
+e: file:///home/basitdev/Me/Quran_App/composeApp/src/androidMain/kotlin/com/quranapp/util/AndroidSettingsStore.kt:8:34 Unresolved reference 'ObservableSettings'.
+e: file:///home/basitdev/Me/Quran_App/composeApp/src/androidMain/kotlin/com/quranapp/util/AndroidSettingsStore.kt:10:16 Unresolved reference 'SharedPreferencesSettings'.
+e: file:///home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/data/repository/SettingsRepositoryImpl.kt:4:22 Unresolved reference 'multiplatform'.
+e: file:///home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/data/repository/SettingsRepositoryImpl.kt:5:22 Unresolved reference 'multiplatform'.
+e: file:///home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/data/repository/SettingsRepositoryImpl.kt:6:22 Unresolved reference 'multiplatform'.
+e: file:///home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/data/repository/SettingsRepositoryImpl.kt:7:22 Unresolved reference 'multiplatform'.
+e: file:///home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/data/repository/SettingsRepositoryImpl.kt:8:22 Unresolved reference 'multiplatform'.
+e: file:///home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/data/repository/SettingsRepositoryImpl.kt:12:27 Unresolved reference 'ObservableSettings'.
+e: file:///home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/data/repository/SettingsRepositoryImpl.kt:16:18 Unresolved reference 'getStringFlow'.
+e: file:///home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/data/repository/SettingsRepositoryImpl.kt:19:18 Unresolved reference 'getFloatFlow'.
+e: file:///home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/data/repository/SettingsRepositoryImpl.kt:22:18 Unresolved reference 'getBooleanFlow'.
+e: file:///home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/data/repository/SettingsRepositoryImpl.kt:25:18 Unresolved reference 'getBooleanFlow'.
+e: file:///home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/di/Modules.kt:36:12 Unresolved reference 'ObservableSettings'.
+e: file:///home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/di/Modules.kt:36:32 Argument type mismatch: actual type is 'Function2<Scope, ParametersHolder, uninferred T (of fun <T> single)>', but 'Function2<Scope, ParametersHolder, uninferred T (of fun <T> single)>' was expected.
+e: file:///home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/di/Modules.kt:49:34 Inapplicable candidate(s): constructor(settings: <ERROR TYPE REF: Symbol not found for ObservableSettings>): SettingsRepositoryImpl
+e: file:///home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/di/Modules.kt:49:61 Unresolved reference 'ObservableSettings'.
+e: file:///home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/util/SettingsStore.kt:3:22 Unresolved reference 'multiplatform'.
+e: file:///home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/util/SettingsStore.kt:6:27 Unresolved reference 'ObservableSettings'.
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':composeApp:compileDebugKotlinAndroid'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.9/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 9s
+23 actionable tasks: 2 executed, 21 up-to-date

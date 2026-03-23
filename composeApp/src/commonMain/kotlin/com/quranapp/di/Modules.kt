@@ -5,6 +5,7 @@ import com.quranapp.data.repository.*
 import com.quranapp.db.QuranDatabase
 import com.quranapp.domain.repository.*
 import com.quranapp.domain.usecase.chatbot.SendChatMessageUseCase
+import com.quranapp.domain.usecase.chatbot.StreamChatMessageUseCase
 import com.quranapp.domain.usecase.hadith.*
 import com.quranapp.domain.usecase.prayer.*
 import com.quranapp.domain.usecase.qibla.GetQiblaDirectionUseCase
@@ -12,12 +13,14 @@ import com.quranapp.domain.usecase.quran.*
 import com.quranapp.domain.usecase.search.SearchUseCase
 import com.quranapp.domain.usecase.userdata.*
 import com.quranapp.util.DatabaseDriverFactory
+import com.quranapp.util.SettingsStore
 import com.quranapp.viewmodel.*
 import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import org.koin.dsl.module
+import com.russhwolf.settings.ObservableSettings
 
 val networkModule = module {
     single {
@@ -27,7 +30,11 @@ val networkModule = module {
             }
         }
     }
-    single { ChatbotRemoteDataSource(get()) }
+    single { ChatbotRemoteDataSource(get(), get(org.koin.core.qualifier.named("baseUrl"))) }
+}
+
+val settingsModule = module {
+    single<ObservableSettings> { get<SettingsStore>().createSettings() }
 }
 
 val databaseModule = module {
@@ -40,6 +47,7 @@ val repositoryModule = module {
     single<HadithRepository> { HadithRepositoryImpl(get()) }
     single<UserDataRepository> { UserDataRepositoryImpl(get()) }
     single<SearchRepository> { SearchRepositoryImpl(get()) }
+    single<SettingsRepository> { SettingsRepositoryImpl(get<ObservableSettings>()) }
 }
 
 val useCaseModule = module {
@@ -50,6 +58,7 @@ val useCaseModule = module {
     
     // Chatbot
     factory { SendChatMessageUseCase(get()) }
+    factory { StreamChatMessageUseCase(get()) }
     
     // Quran
     factory { GetSurahListUseCase(get()) }
@@ -76,8 +85,11 @@ val viewModelModule = module {
     factory { QuranViewModel(get(), get(), get(), get()) }
     factory { HadithViewModel(get(), get(), get()) }
     factory { SearchViewModel(get()) }
+    factory { SettingsViewModel(get()) }
 }
 
 val appModule = module {
-    includes(networkModule, databaseModule, repositoryModule, useCaseModule, viewModelModule)
+    includes(networkModule, databaseModule, settingsModule, repositoryModule, useCaseModule, viewModelModule, platformModule)
 }
+
+expect val platformModule: org.koin.core.module.Module

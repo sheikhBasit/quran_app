@@ -127,4 +127,5 @@ data class ChatMessage(
     val content: String,
     val sources: ChatSources? = null,
     val isLoading: Boolean = false,
+    val isStreaming: Boolean = false,
 )

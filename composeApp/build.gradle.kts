@@ -120,6 +120,10 @@ android {
     namespace = "com.quranapp"
     compileSdk = 35
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         applicationId = "com.quranapp"
         minSdk        = 26
@@ -128,6 +132,9 @@ android {
         versionName   = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        
+        // Use machine IP for physical device: http://192.168.100.10:8000
+        buildConfigField("String", "BACKEND_URL", "\"http://192.168.100.10:8000\"")
     }
 
     packaging {

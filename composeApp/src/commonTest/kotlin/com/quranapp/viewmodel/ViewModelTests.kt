@@ -3,7 +3,8 @@ package com.quranapp.viewmodel
 import com.quranapp.TestFixtures
 import com.quranapp.domain.model.*
 import com.quranapp.domain.usecase.quran.*
-import com.quranapp.domain.usecase.chatbot.SendChatMessageUseCase
+import com.quranapp.domain.usecase.chatbot.StreamChatMessageUseCase
+import kotlinx.coroutines.flow.flow
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -110,12 +111,12 @@ class QuranViewModelTest {
 @OptIn(ExperimentalCoroutinesApi::class)
 class ChatbotViewModelTest {
     private val dispatcher = StandardTestDispatcher()
-    private val sendMessage: SendChatMessageUseCase = mockk()
+    private val streamChatMessage: StreamChatMessageUseCase = mockk()
     private lateinit var vm: ChatbotViewModel
 
     @BeforeTest fun setup() {
         Dispatchers.setMain(dispatcher)
-        vm = ChatbotViewModel(sendMessage)
+        vm = ChatbotViewModel(streamChatMessage)
     }
 
     @AfterTest fun teardown() { Dispatchers.resetMain() }
@@ -126,32 +127,40 @@ class ChatbotViewModelTest {
     }
 
     @Test fun `sendMessage adds user message immediately`() = runTest {
-        coEvery { sendMessage(any()) } coAnswers {
-            delay(500)
-            Result.success(TestFixtures.fakeChatResponse)
+        coEvery { streamChatMessage(any()) } returns flow {
+            emit("Test")
         }
-        vm.sendMessage("What is Zakat?")
+        vm.sendMessage("What is patience?")
         advanceTimeBy(10)
         assertTrue(vm.uiState.value.messages
-            .any { it.role == ChatRole.USER && it.content == "What is Zakat?" })
+            .any { it.role == ChatRole.USER && it.content == "What is patience?" })
     }
 
-    @Test fun `sendMessage adds assistant response on success`() = runTest {
-        coEvery { sendMessage(any()) } returns Result.success(TestFixtures.fakeChatResponse)
-        vm.sendMessage("What is Zakat?")
+    @Test fun `sendMessage adds assistant response from flow tokens`() = runTest {
+        coEvery { streamChatMessage(any()) } returns flow {
+            emit("Patience ")
+            emit("is ")
+            emit("key.")
+        }
+        vm.sendMessage("What is patience?")
         advanceUntilIdle()
-        assertTrue(vm.uiState.value.messages.any { it.role == ChatRole.ASSISTANT })
+        val assistantMsg = vm.uiState.value.messages.find { it.role == ChatRole.ASSISTANT }
+        assertNotNull(assistantMsg)
+        assertEquals("Patience is key.", assistantMsg.content)
         assertFalse(vm.uiState.value.isLoading)
+        assertFalse(assistantMsg.isStreaming)
     }
 
-    @Test fun `sendMessage shows error on failure`() = runTest {
-        coEvery { sendMessage(any()) } returns Result.failure(RuntimeException("No internet"))
+    @Test fun `sendMessage shows error connection message on failure`() = runTest {
+        coEvery { streamChatMessage(any()) } returns flow {
+            throw RuntimeException("No internet")
+        }
         vm.sendMessage("test")
         advanceUntilIdle()
         val lastMsg = vm.uiState.value.messages.last()
         assertEquals(ChatRole.ASSISTANT, lastMsg.role)
-        assertTrue(lastMsg.content.contains("error", ignoreCase = true) ||
-                   lastMsg.content.contains("unavailable", ignoreCase = true))
+        assertTrue(lastMsg.content.contains("connect", ignoreCase = true))
+        assertFalse(lastMsg.isStreaming)
     }
 
     @Test fun `empty message is not sent`() = runTest {

@@ -3,7 +3,7 @@ package com.quranapp.viewmodel
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import com.quranapp.domain.model.*
-import com.quranapp.domain.usecase.chatbot.SendChatMessageUseCase
+import com.quranapp.domain.usecase.chatbot.StreamChatMessageUseCase
 import com.quranapp.domain.usecase.quran.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -108,7 +108,7 @@ data class ChatbotUiState(
 )
 
 class ChatbotViewModel(
-    private val sendChatMessageUseCase: SendChatMessageUseCase,
+    private val streamChatMessageUseCase: StreamChatMessageUseCase,
 ) : ScreenModel {
 
     private val _uiState = MutableStateFlow(ChatbotUiState())
@@ -117,32 +117,57 @@ class ChatbotViewModel(
     fun sendMessage(text: String) {
         if (text.isBlank()) return
 
-        val userMsg = ChatMessage(id = UUID.randomUUID().toString(), role = ChatRole.USER, content = text)
-        val loadingMsg = ChatMessage(id = UUID.randomUUID().toString(), role = ChatRole.ASSISTANT, content = "", isLoading = true)
+        // Capture history BEFORE adding the current user message
+        val history = _uiState.value.messages
+            .filter { !it.isLoading && !it.isStreaming && it.content.isNotBlank() }
+            .takeLast(6)
+
+        val userMsgId = UUID.randomUUID().toString()
+        val userMsg = ChatMessage(id = userMsgId, role = ChatRole.USER, content = text)
+        
+        val assistantMsgId = UUID.randomUUID().toString()
+        val loadingMsg = ChatMessage(id = assistantMsgId, role = ChatRole.ASSISTANT, content = "", isLoading = true, isStreaming = true)
 
         _uiState.update { it.copy(messages = it.messages + userMsg + loadingMsg, isLoading = true) }
 
         screenModelScope.launch {
             try {
-                val response = sendChatMessageUseCase(text).getOrThrow()
+                var fullContent = ""
+                streamChatMessageUseCase(text, history).collect { token ->
+                    fullContent += token
+                    _uiState.update { state ->
+                        val updated = state.messages.map { msg ->
+                            if (msg.id == assistantMsgId) {
+                                msg.copy(content = fullContent, isLoading = false)
+                            } else msg
+                        }
+                        state.copy(messages = updated, isLoading = false)
+                    }
+                }
+                
+                // Mark streaming as complete
                 _uiState.update { state ->
-                    val updated = state.messages.dropLast(1) +
-                        ChatMessage(
-                            id = UUID.randomUUID().toString(),
-                            role = ChatRole.ASSISTANT,
-                            content = response.answer,
-                            sources = response.sources,
-                        )
-                    state.copy(messages = updated, isLoading = false)
+                    val updated = state.messages.map { msg ->
+                        if (msg.id == assistantMsgId) {
+                            msg.copy(isStreaming = false)
+                        } else msg
+                    }
+                    state.copy(messages = updated)
                 }
             } catch (e: Exception) {
+                println("CHATBOT_ERROR: ${e.message} ${e.cause}")
+                e.printStackTrace()
                 _uiState.update { state ->
-                    val errorMsg = ChatMessage(
-                        id = UUID.randomUUID().toString(),
-                        role = ChatRole.ASSISTANT,
-                        content = "Sorry, an error occurred: ${e.message ?: "Service unavailable"}",
-                    )
-                    state.copy(messages = state.messages.dropLast(1) + errorMsg, isLoading = false)
+                    val updated = state.messages.map { msg ->
+                        if (msg.id == assistantMsgId) {
+                            msg.copy(
+                                content = "Sorry, I could not connect to the server. Please check your connection.",
+                                isLoading = false,
+                                isStreaming = false
+                            )
+                        } else msg
+                    }
+                    state.copy(messages = updated, isLoading = false)
                 }
             }
         }

@@ -1,6 +1,7 @@
 package com.quranapp.domain.repository
 
 import com.quranapp.domain.model.*
+import kotlinx.coroutines.flow.Flow
 
 interface QuranRepository {
     suspend fun getAllSurahs(): List<Surah>
@@ -37,10 +38,7 @@ interface SearchRepository {
 }
 
 interface ChatbotRepository {
-    suspend fun sendMessage(message: String): ChatResponse
+    suspend fun sendMessage(message: String, history: List<ChatMessage> = emptyList()): ChatResponse
+    fun streamMessage(message: String, history: List<ChatMessage> = emptyList()): Flow<String>
 }
 
-interface SettingsRepository {
-    fun getString(key: String, default: String): String
-    fun setString(key: String, value: String)
-}

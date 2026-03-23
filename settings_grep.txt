@@ -1,0 +1,10 @@
+/home/basitdev/Me/Quran_App/composeApp/src/iosMain/kotlin/com/quranapp/util/IosSettingsStore.kt:import com.russhwolf.multiplatform.settings.NSUserDefaultsSettings
+/home/basitdev/Me/Quran_App/composeApp/src/iosMain/kotlin/com/quranapp/util/IosSettingsStore.kt:import com.russhwolf.multiplatform.settings.ObservableSettings
+/home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/data/repository/SettingsRepositoryImpl.kt:import com.russhwolf.multiplatform.settings.ObservableSettings
+/home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/data/repository/SettingsRepositoryImpl.kt:import com.russhwolf.multiplatform.settings.coroutines.getBooleanFlow
+/home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/data/repository/SettingsRepositoryImpl.kt:import com.russhwolf.multiplatform.settings.coroutines.getFloatFlow
+/home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/data/repository/SettingsRepositoryImpl.kt:import com.russhwolf.multiplatform.settings.coroutines.getStringFlow
+/home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/data/repository/SettingsRepositoryImpl.kt:import com.russhwolf.multiplatform.settings.set
+/home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/util/SettingsStore.kt:import com.russhwolf.multiplatform.settings.ObservableSettings
+/home/basitdev/Me/Quran_App/composeApp/src/androidMain/kotlin/com/quranapp/util/AndroidSettingsStore.kt:import com.russhwolf.multiplatform.settings.ObservableSettings
+/home/basitdev/Me/Quran_App/composeApp/src/androidMain/kotlin/com/quranapp/util/AndroidSettingsStore.kt:import com.russhwolf.multiplatform.settings.SharedPreferencesSettings

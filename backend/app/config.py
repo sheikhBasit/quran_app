@@ -14,8 +14,8 @@ class Settings(BaseSettings):
 
     # RAG retrieval settings
     min_similarity: float = 0.30
-    top_k: int = 7
-    rerank_top_k: int = 20
+    top_k: int = 15
+    rerank_top_k: int = 30
     hyde_enabled: bool = True
     rerank_enabled: bool = True
     rerank_model_name: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
