@@ -140,12 +140,15 @@ object PrayerTimesScreen : Screen {
     private fun PrayerList(state: PrayerUiState) {
         val times = state.times ?: return
         val prayerItems = listOf(
+            PrayerItemData("Tahajjud", times.tahajjud, Icons.Default.Bedtime),
             PrayerItemData("Fajr", times.fajr, Icons.Default.WbTwilight),
             PrayerItemData("Sunrise", times.sunrise, Icons.Default.WbSunny),
+            PrayerItemData("Ishraq", times.ishraq, Icons.Default.WbSunny),
+            PrayerItemData("Chasht", times.chasht, Icons.Default.LightMode),
             PrayerItemData("Dhuhr", times.dhuhr, Icons.Default.LightMode),
             PrayerItemData("Asr", times.asr, Icons.Default.WbCloudy),
             PrayerItemData("Maghrib", times.maghrib, Icons.Default.WbTwilight),
-            PrayerItemData("Isha", times.isha, Icons.Default.NightsStay)
+            PrayerItemData("Isha", times.isha, Icons.Default.NightsStay),
         )
 
         LazyColumn(

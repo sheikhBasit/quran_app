@@ -37,13 +37,34 @@ class GetPrayerTimesUseCase {
             }
         )
         val times = PrayerTimes(coords, date, params)
+        
+        val fajr    = times.fajr.toEpochMilliseconds()
+        val sunrise = times.sunrise.toEpochMilliseconds()
+        val dhuhr   = times.dhuhr.toEpochMilliseconds()
+        val asr     = times.asr.toEpochMilliseconds()
+        val maghrib = times.maghrib.toEpochMilliseconds()
+        val isha    = times.isha.toEpochMilliseconds()
+
+        // --- Custom Calculations ---
+        // Ishraq = Sunrise + 20 minutes
+        val ishraq = sunrise + (20 * 60 * 1000L)
+        // Chasht (Duha) = Sunrise + 45 minutes
+        val chasht = sunrise + (45 * 60 * 1000L)
+        // Tahajjud = Isha + ((Fajr - Isha) * 2/3) (Last third of night between Isha and Fajr)
+        // Note: Fajr is for the next day for the calculation of the "night"
+        val nextFajr = invoke(latitude, longitude, dateMs + 86400000).getOrThrow().fajr
+        val tahajjud = isha + ((nextFajr - isha) * 2 / 3)
+
         PrayerTimesResult(
-            fajr    = times.fajr.toEpochMilliseconds(),
-            sunrise = times.sunrise.toEpochMilliseconds(),
-            dhuhr   = times.dhuhr.toEpochMilliseconds(),
-            asr     = times.asr.toEpochMilliseconds(),
-            maghrib = times.maghrib.toEpochMilliseconds(),
-            isha    = times.isha.toEpochMilliseconds(),
+            fajr    = fajr,
+            sunrise = sunrise,
+            dhuhr   = dhuhr,
+            asr     = asr,
+            maghrib = maghrib,
+            isha    = isha,
+            ishraq  = ishraq,
+            chasht  = chasht,
+            tahajjud = tahajjud
         )
     }
 

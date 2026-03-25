@@ -3,20 +3,22 @@ package com.quranapp.ui.screens.qibla
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.NavigateNext
-import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.rotate
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -25,6 +27,7 @@ import cafe.adriel.voyager.koin.getScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.quranapp.util.LocationPermissionRequest
+import com.quranapp.util.MathUtils
 import com.quranapp.viewmodel.QiblaViewModel
 import kotlin.math.PI
 import kotlin.math.cos
@@ -38,17 +41,25 @@ object QiblaScreen : Screen {
         val uiState by viewModel.uiState.collectAsState()
         val navigator = LocalNavigator.currentOrThrow
 
-        LocationPermissionRequest {
-            // LocationProvider flow in ViewModel will pick it up
-        }
+        // Ensure location permission is requested on entry
+        LocationPermissionRequest {}
 
-        // Calculate rotation for the needle
-        // The needle should point towards (QiblaBearing - CurrentBearing)
-        val rotation = (uiState.qiblaBearing - uiState.direction).toFloat()
+        // State for continuous rotation tracking to prevent counter-rotation 
+        var currentRotation by remember { mutableStateOf(0f) }
+        
+        // Calculate the next target rotation using shortest path logic
+        val targetRotation = MathUtils.shortestRotation(
+            current = currentRotation,
+            target = (uiState.qiblaBearing - uiState.direction).toFloat()
+        )
         
         val animatedRotation by animateFloatAsState(
-            targetValue = rotation,
-            animationSpec = spring(stiffness = Spring.StiffnessLow)
+            targetValue = targetRotation,
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioLowBouncy,
+                stiffness = Spring.StiffnessLow
+            ),
+            finishedListener = { currentRotation = it }
         )
 
         Scaffold(
@@ -71,18 +82,20 @@ object QiblaScreen : Screen {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(
-                    text = "Point your phone towards the Kaaba",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                )
-                
-                Spacer(modifier = Modifier.height(48.dp))
-                
-                CompassUI(animatedRotation)
-                
-                Spacer(modifier = Modifier.height(48.dp))
-                
+                // Main Compass Card
+                Card(
+                    modifier = Modifier.size(320.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 12.dp),
+                    shape = CircleShape,
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1C1E))
+                ) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CompassDial(animatedRotation)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(56.dp))
+
                 if (uiState.error != null) {
                     Text(
                         text = uiState.error!!,
@@ -91,36 +104,18 @@ object QiblaScreen : Screen {
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center
                     )
                 } else {
-                    Card(
-                        modifier = Modifier.padding(16.dp),
-                        shape = MaterialTheme.shapes.large,
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "Qibla: ${uiState.qiblaBearing.toInt()}° ${MathUtils.getCardinalDirection(uiState.qiblaBearing)}",
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
                         )
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(24.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                Icons.Default.Place, 
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                            Spacer(modifier = Modifier.width(16.dp))
-                            Column {
-                                Text(
-                                    text = "Qibla Direction",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                                Text(
-                                    text = "${uiState.qiblaBearing.toInt()}° North-East",
-                                    style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
+                        Text(
+                            text = "Face this direction to pray",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        )
                     }
                 }
             }
@@ -128,63 +123,78 @@ object QiblaScreen : Screen {
     }
 
     @Composable
-    private fun CompassUI(rotation: Float) {
+    private fun CompassDial(rotation: Float) {
         Box(
-            modifier = Modifier
-                .size(300.dp)
-                .padding(16.dp),
+            modifier = Modifier.size(280.dp),
             contentAlignment = Alignment.Center
         ) {
-            // Compass background circle
-            Surface(
-                modifier = Modifier.fillMaxSize(),
-                shape = MaterialTheme.shapes.extraLarge,
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                border = androidx.compose.foundation.BorderStroke(2.dp, MaterialTheme.colorScheme.outlineVariant)
-            ) {}
+            DegreesMarkers()
+            CardinalLabels()
 
-            // Cardinal points (Fixed)
-            CardinalPoints()
-
-            // The rotating part (Needle)
+            // The rotating part (Green Needle + Kaaba Tip)
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .rotate(rotation),
                 contentAlignment = Alignment.Center
             ) {
-                // Large arrow pointing to Kaaba
+                // Qibla Arrow
                 Icon(
                     imageVector = Icons.Default.NavigateNext,
                     contentDescription = null,
                     modifier = Modifier
-                        .size(120.dp)
-                        .rotate(-90f) // Point up
-                        .offset(y = (-40).dp), // Move to top of circle
-                    tint = MaterialTheme.colorScheme.primary
+                        .size(140.dp)
+                        .rotate(-90f) // Point to top of phone
+                        .offset(y = (-50).dp),
+                    tint = Color(0xFF4CAF50)
                 )
-                
-                // Kaaba Icon at the tip
+
+                // Kaaba Symbol at the top of the needle
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
-                        .offset(y = (-110).dp)
-                        .background(MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small),
+                        .size(44.dp)
+                        .offset(y = (-120).dp)
+                        .background(Color.Black, RoundedCornerShape(4.dp))
+                        .border(1.dp, Color(0xFFFFD700).copy(alpha = 0.4f), RoundedCornerShape(4.dp)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("🕋", fontSize = 20.sp)
+                    Text("🕋", fontSize = 24.sp)
                 }
             }
         }
     }
 
     @Composable
-    private fun CardinalPoints() {
+    private fun CardinalLabels() {
         Box(modifier = Modifier.fillMaxSize()) {
-            Text("N", modifier = Modifier.align(Alignment.TopCenter).padding(8.dp), fontWeight = FontWeight.Bold, color = Color.Red)
-            Text("S", modifier = Modifier.align(Alignment.BottomCenter).padding(8.dp), fontWeight = FontWeight.Bold)
-            Text("E", modifier = Modifier.align(Alignment.CenterEnd).padding(8.dp), fontWeight = FontWeight.Bold)
-            Text("W", modifier = Modifier.align(Alignment.CenterStart).padding(8.dp), fontWeight = FontWeight.Bold)
+            Text("N", modifier = Modifier.align(Alignment.TopCenter).padding(12.dp), fontWeight = FontWeight.ExtraBold, color = Color.Red, fontSize = 20.sp)
+            Text("S", modifier = Modifier.align(Alignment.BottomCenter).padding(12.dp), fontWeight = FontWeight.Bold, color = Color.White, fontSize = 18.sp)
+            Text("E", modifier = Modifier.align(Alignment.CenterEnd).padding(12.dp), fontWeight = FontWeight.Bold, color = Color.White, fontSize = 18.sp)
+            Text("W", modifier = Modifier.align(Alignment.CenterStart).padding(12.dp), fontWeight = FontWeight.Bold, color = Color.White, fontSize = 18.sp)
+        }
+    }
+
+    @Composable
+    private fun DegreesMarkers() {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val center = size.center
+            val radius = size.minDimension / 2
+            for (i in 0 until 360 step 15) {
+                val angleRad = (i - 90) * (PI / 180f).toFloat()
+                val lineLength = if (i % 45 == 0) 20.dp.toPx() else 10.dp.toPx()
+                val thickness = if (i % 45 == 0) 3.dp.toPx() else 1.dp.toPx()
+                val color = if (i % 45 == 0) Color.White else Color.Gray
+
+                val start = Offset(
+                    center.x + (radius - lineLength) * cos(angleRad),
+                    center.y + (radius - lineLength) * sin(angleRad)
+                )
+                val end = Offset(
+                    center.x + radius * cos(angleRad),
+                    center.y + radius * sin(angleRad)
+                )
+                drawLine(color, start, end, thickness)
+            }
         }
     }
 }

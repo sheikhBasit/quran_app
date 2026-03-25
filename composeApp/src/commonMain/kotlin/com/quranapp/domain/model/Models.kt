@@ -86,6 +86,9 @@ data class PrayerTimesResult(
     val asr: Long,
     val maghrib: Long,
     val isha: Long,
+    val tahajjud: Long,
+    val ishraq: Long,
+    val chasht: Long,
 )
 
 data class NextPrayer(
