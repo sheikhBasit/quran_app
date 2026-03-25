@@ -31,5 +31,8 @@ expect class NotificationScheduler {
     fun cancelAllAlarms()
 }
 
+@androidx.compose.runtime.Composable
+expect fun LocationPermissionRequest(onGranted: () -> Unit)
+
 expect fun randomUUID(): String
 expect fun currentTimeMillis(): Long

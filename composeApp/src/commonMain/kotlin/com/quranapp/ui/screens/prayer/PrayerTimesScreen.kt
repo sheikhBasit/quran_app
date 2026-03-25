@@ -24,6 +24,7 @@ import cafe.adriel.voyager.koin.getScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.quranapp.util.TimeUtils
+import com.quranapp.util.LocationPermissionRequest
 import com.quranapp.viewmodel.PrayerViewModel
 import com.quranapp.viewmodel.PrayerUiState
 
@@ -34,6 +35,10 @@ object PrayerTimesScreen : Screen {
         val viewModel = getScreenModel<PrayerViewModel>()
         val uiState by viewModel.uiState.collectAsState()
         val navigator = LocalNavigator.currentOrThrow
+
+        LocationPermissionRequest {
+            // LocationProvider flow in ViewModel will pick it up
+        }
 
         Scaffold(
             topBar = {

@@ -1,10 +1,18 @@
 package com.quranapp.util
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import com.google.android.gms.location.LocationServices
@@ -14,6 +22,39 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flow
 import java.io.File
+
+@Composable
+actual fun LocationPermissionRequest(onGranted: () -> Unit) {
+    val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        if (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+            permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true) {
+            onGranted()
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        val fineLocationGranted = ContextCompat.checkSelfPermission(
+            context, Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+        val coarseLocationGranted = ContextCompat.checkSelfPermission(
+            context, Manifest.permission.ACCESS_COARSE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (fineLocationGranted || coarseLocationGranted) {
+            onGranted()
+        } else {
+            launcher.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            )
+        }
+    }
+}
 
 // ─── Database Driver ──────────────────────────────────────────────────────────
 
@@ -69,7 +110,6 @@ actual class LocationProvider(private val context: Context) {
                             android.os.Looper.getMainLooper()
                         )
                         // Timeout after 10 seconds handled by awaitClose/coroutineScope if needed
-                        // but user provided a delay block inside trySend context
                     } catch (e: SecurityException) {
                         trySend(null)
                     }
@@ -81,7 +121,7 @@ actual class LocationProvider(private val context: Context) {
             trySend(null)
         }
         awaitClose {
-            // Cleanup happens if flow is closed
+            // Cleanup handled
         }
     }
 }

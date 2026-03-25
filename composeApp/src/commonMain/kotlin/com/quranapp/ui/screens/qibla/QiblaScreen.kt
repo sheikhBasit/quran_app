@@ -24,6 +24,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.getScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.quranapp.util.LocationPermissionRequest
 import com.quranapp.viewmodel.QiblaViewModel
 import kotlin.math.PI
 import kotlin.math.cos
@@ -36,6 +37,10 @@ object QiblaScreen : Screen {
         val viewModel = getScreenModel<QiblaViewModel>()
         val uiState by viewModel.uiState.collectAsState()
         val navigator = LocalNavigator.currentOrThrow
+
+        LocationPermissionRequest {
+            // LocationProvider flow in ViewModel will pick it up
+        }
 
         // Calculate rotation for the needle
         // The needle should point towards (QiblaBearing - CurrentBearing)
