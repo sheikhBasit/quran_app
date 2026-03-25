@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.tab.CurrentTab
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabNavigator
@@ -107,6 +108,13 @@ object ChatbotTab : Tab {
     }
 }
 
+object SettingsMainScreen : Screen {
+    @Composable
+    override fun Content() {
+        SettingsScreen(getScreenModel())
+    }
+}
+
 object SettingsTab : Tab {
     val icon: ImageVector = Icons.Default.Settings
     override val options: TabOptions
@@ -114,6 +122,6 @@ object SettingsTab : Tab {
 
     @Composable
     override fun Content() {
-        SettingsScreen(getScreenModel())
+        cafe.adriel.voyager.navigator.Navigator(SettingsMainScreen)
     }
 }

@@ -60,6 +60,16 @@ object PrayerTimesScreen : Screen {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator()
                     }
+                } else if (uiState.error != null) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = uiState.error!!,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(32.dp),
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
                 } else {
                     HeaderSection(uiState)
                     Spacer(modifier = Modifier.height(24.dp))

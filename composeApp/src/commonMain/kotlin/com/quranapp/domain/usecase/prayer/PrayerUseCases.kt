@@ -3,6 +3,7 @@ package com.quranapp.domain.usecase.prayer
 import kotlin.time.ExperimentalTime
 import kotlin.time.Duration.Companion.milliseconds
 import com.batoulapps.adhan2.CalculationMethod
+import com.batoulapps.adhan2.CalculationParameters
 import com.batoulapps.adhan2.Coordinates
 import com.batoulapps.adhan2.PrayerTimes
 import com.batoulapps.adhan2.data.DateComponents
@@ -17,7 +18,7 @@ class GetPrayerTimesUseCase {
         dateMs: Long = System.currentTimeMillis(),
     ): Result<PrayerTimesResult> = runCatching {
         val coords = Coordinates(latitude, longitude)
-        val params = CalculationMethod.MUSLIM_WORLD_LEAGUE.parameters
+        val params = getCalculationMethod(latitude, longitude)
         val date = DateComponents(
             java.util.Date(dateMs).let {
                 val cal = java.util.Calendar.getInstance()
@@ -44,6 +45,22 @@ class GetPrayerTimesUseCase {
             maghrib = times.maghrib.toEpochMilliseconds(),
             isha    = times.isha.toEpochMilliseconds(),
         )
+    }
+
+    private fun getCalculationMethod(lat: Double, lon: Double): CalculationParameters {
+        return when {
+            // Pakistan, India, Bangladesh, Afghanistan
+            lat in 5.0..37.0 && lon in 60.0..100.0 ->
+                CalculationMethod.KARACHI.parameters
+            // North America
+            lon in -170.0..-50.0 ->
+                CalculationMethod.NORTH_AMERICA.parameters
+            // Egypt and surrounding
+            lat in 20.0..32.0 && lon in 25.0..40.0 ->
+                CalculationMethod.EGYPTIAN.parameters
+            // Default
+            else -> CalculationMethod.MUSLIM_WORLD_LEAGUE.parameters
+        }
     }
 }
 

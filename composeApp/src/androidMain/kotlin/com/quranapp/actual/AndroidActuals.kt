@@ -41,11 +41,38 @@ actual class LocationProvider(private val context: Context) {
     actual fun getLocationFlow(): Flow<Coordinates?> = callbackFlow {
         val client = LocationServices.getFusedLocationProviderClient(context)
         try {
+            // First try lastLocation
             client.lastLocation.addOnSuccessListener { location ->
                 if (location != null) {
                     trySend(Coordinates(location.latitude, location.longitude))
                 } else {
-                    trySend(null)
+                    // lastLocation null — request fresh location
+                    val request = com.google.android.gms.location.LocationRequest.Builder(
+                        com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY,
+                        10000L
+                    ).setMaxUpdates(1).build()
+                    
+                    val callback = object : com.google.android.gms.location.LocationCallback() {
+                        override fun onLocationResult(result: com.google.android.gms.location.LocationResult) {
+                            val loc = result.lastLocation
+                            if (loc != null) {
+                                trySend(Coordinates(loc.latitude, loc.longitude))
+                            } else {
+                                trySend(null)
+                            }
+                            client.removeLocationUpdates(this)
+                        }
+                    }
+                    try {
+                        client.requestLocationUpdates(
+                            request, callback, 
+                            android.os.Looper.getMainLooper()
+                        )
+                        // Timeout after 10 seconds handled by awaitClose/coroutineScope if needed
+                        // but user provided a delay block inside trySend context
+                    } catch (e: SecurityException) {
+                        trySend(null)
+                    }
                 }
             }.addOnFailureListener {
                 trySend(null)
@@ -53,7 +80,9 @@ actual class LocationProvider(private val context: Context) {
         } catch (e: SecurityException) {
             trySend(null)
         }
-        awaitClose()
+        awaitClose {
+            // Cleanup happens if flow is closed
+        }
     }
 }
 

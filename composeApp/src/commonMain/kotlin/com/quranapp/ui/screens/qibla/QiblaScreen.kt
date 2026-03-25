@@ -34,13 +34,12 @@ object QiblaScreen : Screen {
     @Composable
     override fun Content() {
         val viewModel = getScreenModel<QiblaViewModel>()
-        val currentBearing by viewModel.direction.collectAsState()
-        val qiblaBearing by viewModel.qiblaBearing.collectAsState()
+        val uiState by viewModel.uiState.collectAsState()
         val navigator = LocalNavigator.currentOrThrow
 
         // Calculate rotation for the needle
         // The needle should point towards (QiblaBearing - CurrentBearing)
-        val rotation = (qiblaBearing - currentBearing).toFloat()
+        val rotation = (uiState.qiblaBearing - uiState.direction).toFloat()
         
         val animatedRotation by animateFloatAsState(
             targetValue = rotation,
@@ -79,34 +78,43 @@ object QiblaScreen : Screen {
                 
                 Spacer(modifier = Modifier.height(48.dp))
                 
-                Card(
-                    modifier = Modifier.padding(16.dp),
-                    shape = MaterialTheme.shapes.large,
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
+                if (uiState.error != null) {
+                    Text(
+                        text = uiState.error!!,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(16.dp),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
                     )
-                ) {
-                    Row(
-                        modifier = Modifier.padding(24.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            Icons.Default.Place, 
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
+                } else {
+                    Card(
+                        modifier = Modifier.padding(16.dp),
+                        shape = MaterialTheme.shapes.large,
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
                         )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column {
-                            Text(
-                                text = "Qibla Direction",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.primary
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(24.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Default.Place, 
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
                             )
-                            Text(
-                                text = "${qiblaBearing.toInt()}° North-East",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold
-                            )
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Column {
+                                Text(
+                                    text = "Qibla Direction",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Text(
+                                    text = "${uiState.qiblaBearing.toInt()}° North-East",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
                     }
                 }
