@@ -1,3 +1,4 @@
+@file:OptIn(ExperimentalTime::class)
 package com.quranapp.domain.usecase.prayer
 
 import kotlin.time.ExperimentalTime
@@ -17,6 +18,36 @@ class GetPrayerTimesUseCase {
         longitude: Double,
         dateMs: Long = System.currentTimeMillis(),
     ): Result<PrayerTimesResult> = runCatching {
+        val today = calculateBaseTimes(latitude, longitude, dateMs)
+        val tomorrow = calculateBaseTimes(latitude, longitude, dateMs + 86400000)
+
+        // --- Custom Calculations ---
+        // Ishraq = Sunrise + 20 minutes
+        val ishraq = today.sunrise + (20 * 60 * 1000L)
+        // Chasht (Duha) = Sunrise + 45 minutes
+        val chasht = today.sunrise + (45 * 60 * 1000L)
+        // Tahajjud = Isha + ((NextFajr - Isha) * 2/3) (Last third of night between Isha and Fajr)
+        val tahajjud = today.isha + ((tomorrow.fajr - today.isha) * 2 / 3)
+
+        PrayerTimesResult(
+            fajr = today.fajr,
+            sunrise = today.sunrise,
+            dhuhr = today.dhuhr,
+            asr = today.asr,
+            maghrib = today.maghrib,
+            isha = today.isha,
+            ishraq = ishraq,
+            chasht = chasht,
+            tahajjud = tahajjud
+        )
+    }
+
+    @OptIn(ExperimentalTime::class)
+    private fun calculateBaseTimes(
+        latitude: Double,
+        longitude: Double,
+        dateMs: Long
+    ): PrayerTimesResult {
         val coords = Coordinates(latitude, longitude)
         val params = getCalculationMethod(latitude, longitude)
         val date = DateComponents(
@@ -37,34 +68,17 @@ class GetPrayerTimesUseCase {
             }
         )
         val times = PrayerTimes(coords, date, params)
-        
-        val fajr    = times.fajr.toEpochMilliseconds()
-        val sunrise = times.sunrise.toEpochMilliseconds()
-        val dhuhr   = times.dhuhr.toEpochMilliseconds()
-        val asr     = times.asr.toEpochMilliseconds()
-        val maghrib = times.maghrib.toEpochMilliseconds()
-        val isha    = times.isha.toEpochMilliseconds()
 
-        // --- Custom Calculations ---
-        // Ishraq = Sunrise + 20 minutes
-        val ishraq = sunrise + (20 * 60 * 1000L)
-        // Chasht (Duha) = Sunrise + 45 minutes
-        val chasht = sunrise + (45 * 60 * 1000L)
-        // Tahajjud = Isha + ((Fajr - Isha) * 2/3) (Last third of night between Isha and Fajr)
-        // Note: Fajr is for the next day for the calculation of the "night"
-        val nextFajr = invoke(latitude, longitude, dateMs + 86400000).getOrThrow().fajr
-        val tahajjud = isha + ((nextFajr - isha) * 2 / 3)
-
-        PrayerTimesResult(
-            fajr    = fajr,
-            sunrise = sunrise,
-            dhuhr   = dhuhr,
-            asr     = asr,
-            maghrib = maghrib,
-            isha    = isha,
-            ishraq  = ishraq,
-            chasht  = chasht,
-            tahajjud = tahajjud
+        return PrayerTimesResult(
+            fajr = times.fajr.toEpochMilliseconds(),
+            sunrise = times.sunrise.toEpochMilliseconds(),
+            dhuhr = times.dhuhr.toEpochMilliseconds(),
+            asr = times.asr.toEpochMilliseconds(),
+            maghrib = times.maghrib.toEpochMilliseconds(),
+            isha = times.isha.toEpochMilliseconds(),
+            ishraq = 0L,
+            chasht = 0L,
+            tahajjud = 0L
         )
     }
 
