@@ -81,48 +81,37 @@ actual class DatabaseDriverFactory(private val context: Context) {
 actual class LocationProvider(private val context: Context) {
     actual fun getLocationFlow(): Flow<Coordinates?> = callbackFlow {
         val client = LocationServices.getFusedLocationProviderClient(context)
+
+        // Continuous updates — keeps flow alive for prayer times + qibla refresh
+        val request = com.google.android.gms.location.LocationRequest.Builder(
+            com.google.android.gms.location.Priority.PRIORITY_BALANCED_POWER_ACCURACY,
+            30_000L  // update every 30 seconds
+        ).apply {
+            setMinUpdateIntervalMillis(10_000L)
+            setWaitForAccurateLocation(false)
+        }.build()
+
+        val callback = object : com.google.android.gms.location.LocationCallback() {
+            override fun onLocationResult(result: com.google.android.gms.location.LocationResult) {
+                val loc = result.lastLocation ?: return
+                trySend(Coordinates(loc.latitude, loc.longitude))
+            }
+        }
+
         try {
-            // First try lastLocation
+            // Emit last known immediately so UI doesn't wait
             client.lastLocation.addOnSuccessListener { location ->
                 if (location != null) {
                     trySend(Coordinates(location.latitude, location.longitude))
-                } else {
-                    // lastLocation null — request fresh location
-                    val request = com.google.android.gms.location.LocationRequest.Builder(
-                        com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY,
-                        10000L
-                    ).setMaxUpdates(1).build()
-                    
-                    val callback = object : com.google.android.gms.location.LocationCallback() {
-                        override fun onLocationResult(result: com.google.android.gms.location.LocationResult) {
-                            val loc = result.lastLocation
-                            if (loc != null) {
-                                trySend(Coordinates(loc.latitude, loc.longitude))
-                            } else {
-                                trySend(null)
-                            }
-                            client.removeLocationUpdates(this)
-                        }
-                    }
-                    try {
-                        client.requestLocationUpdates(
-                            request, callback, 
-                            android.os.Looper.getMainLooper()
-                        )
-                        // Timeout after 10 seconds handled by awaitClose/coroutineScope if needed
-                    } catch (e: SecurityException) {
-                        trySend(null)
-                    }
                 }
-            }.addOnFailureListener {
-                trySend(null)
             }
+            // Then start continuous updates
+            client.requestLocationUpdates(request, callback, android.os.Looper.getMainLooper())
         } catch (e: SecurityException) {
             trySend(null)
         }
-        awaitClose {
-            // Cleanup handled
-        }
+
+        awaitClose { client.removeLocationUpdates(callback) }
     }
 }
 

@@ -61,24 +61,49 @@ object PrayerTimesScreen : Screen {
                     .padding(padding)
                     .background(MaterialTheme.colorScheme.surface)
             ) {
-                if (uiState.isLoading) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
+                when {
+                    uiState.isLoading || uiState.times == null && uiState.error == null -> {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                CircularProgressIndicator()
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    text = "Getting your location...",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                )
+                            }
+                        }
                     }
-                } else if (uiState.error != null) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(
-                            text = uiState.error!!,
-                            color = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.padding(32.dp),
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                            style = MaterialTheme.typography.bodyLarge
-                        )
+                    uiState.error != null -> {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.padding(32.dp)
+                            ) {
+                                Text(
+                                    text = "⚠️",
+                                    fontSize = 40.sp
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Text(
+                                    text = uiState.error!!,
+                                    color = MaterialTheme.colorScheme.error,
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Button(onClick = { viewModel.loadPrayerTimes(0.0, 0.0) }) {
+                                    Text("Retry")
+                                }
+                            }
+                        }
                     }
-                } else {
-                    HeaderSection(uiState)
-                    Spacer(modifier = Modifier.height(24.dp))
-                    PrayerList(uiState)
+                    else -> {
+                        HeaderSection(uiState)
+                        Spacer(modifier = Modifier.height(24.dp))
+                        PrayerList(uiState)
+                    }
                 }
             }
         }
@@ -139,7 +164,7 @@ object PrayerTimesScreen : Screen {
     @Composable
     private fun PrayerList(state: PrayerUiState) {
         val times = state.times ?: return
-        val prayerItems = listOf(
+        val allItems = listOf(
             PrayerItemData("Tahajjud", times.tahajjud, Icons.Default.Bedtime),
             PrayerItemData("Fajr", times.fajr, Icons.Default.WbTwilight),
             PrayerItemData("Sunrise", times.sunrise, Icons.Default.WbSunny),
@@ -150,6 +175,8 @@ object PrayerTimesScreen : Screen {
             PrayerItemData("Maghrib", times.maghrib, Icons.Default.WbTwilight),
             PrayerItemData("Isha", times.isha, Icons.Default.NightsStay),
         )
+        // Only show prayers with a valid (non-zero) time
+        val prayerItems = allItems.filter { it.timeMs > 0L }
 
         LazyColumn(
             modifier = Modifier.fillMaxWidth(),
