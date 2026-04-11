@@ -88,11 +88,14 @@ object TestFixtures {
     // ─── Prayer ───────────────────────────────────────────────────────────────
 
     val fakePrayerTimes = PrayerTimesResult(
-        fajr    = 1718420400000L,
-        sunrise = 1718424000000L,
-        dhuhr   = 1718445600000L,
-        asr     = 1718456400000L,
-        maghrib = 1718467200000L,
-        isha    = 1718473200000L
+        fajr     = 1718420400000L,
+        sunrise  = 1718424000000L,
+        dhuhr    = 1718445600000L,
+        asr      = 1718456400000L,
+        maghrib  = 1718467200000L,
+        isha     = 1718473200000L,
+        tahajjud = 1718410000000L,
+        ishraq   = 1718425800000L,
+        chasht   = 1718434200000L,
     )
 }

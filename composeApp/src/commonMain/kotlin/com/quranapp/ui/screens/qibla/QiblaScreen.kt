@@ -44,22 +44,25 @@ object QiblaScreen : Screen {
         // Ensure location permission is requested on entry
         LocationPermissionRequest {}
 
-        // State for continuous rotation tracking to prevent counter-rotation 
-        var currentRotation by remember { mutableStateOf(0f) }
-        
-        // Calculate the next target rotation using shortest path logic
-        val targetRotation = MathUtils.shortestRotation(
-            current = currentRotation,
-            target = (uiState.qiblaBearing - uiState.direction).toFloat()
-        )
-        
+        // Track accumulated rotation to prevent shortest-path counter-rotation jitter
+        val currentRotation = remember { mutableStateOf(0f) }
+
+        // Raw needle angle = qibla bearing offset by current compass heading
+        val rawTarget = (uiState.qiblaBearing - uiState.direction).toFloat()
+
+        // Use shortest-path delta so needle never spins the long way
+        val targetRotation = remember(rawTarget) {
+            val next = MathUtils.shortestRotation(currentRotation.value, rawTarget)
+            next
+        }
+
         val animatedRotation by animateFloatAsState(
             targetValue = targetRotation,
             animationSpec = spring(
-                dampingRatio = Spring.DampingRatioLowBouncy,
-                stiffness = Spring.StiffnessLow
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessMediumLow
             ),
-            finishedListener = { currentRotation = it }
+            finishedListener = { currentRotation.value = it }
         )
 
         Scaffold(
@@ -96,26 +99,49 @@ object QiblaScreen : Screen {
 
                 Spacer(modifier = Modifier.height(56.dp))
 
-                if (uiState.error != null) {
-                    Text(
-                        text = uiState.error!!,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(16.dp),
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                    )
-                } else {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                when {
+                    uiState.error != null -> {
                         Text(
-                            text = "Qibla: ${uiState.qiblaBearing.toInt()}° ${MathUtils.getCardinalDirection(uiState.qiblaBearing)}",
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
+                            text = uiState.error!!,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(16.dp),
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
                         )
-                        Text(
-                            text = "Face this direction to pray",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                        )
+                    }
+                    uiState.qiblaBearing == 0.0 -> {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                            Text(
+                                text = "Locating...",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                        }
+                    }
+                    else -> {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = "Qibla: ${uiState.qiblaBearing.toInt()}° ${MathUtils.getCardinalDirection(uiState.qiblaBearing)}",
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "Face this direction to pray",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Compass: ${uiState.direction.toInt()}°",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                            )
+                        }
                     }
                 }
             }

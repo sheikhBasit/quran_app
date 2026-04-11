@@ -6,7 +6,11 @@ Free tier: 14,400 requests/day, 6,000 tokens/minute
 
 Model: llama-3.3-70b-versatile — excellent for Islamic Q&A
 """
+
+import json
+
 import httpx
+
 from app.config import settings
 
 
@@ -48,7 +52,7 @@ async def stream_llm_response(system_prompt: str, messages: list[dict], history:
         "Authorization": f"Bearer {settings.groq_api_key}",
         "Content-Type": "application/json",
     }
-    
+
     async with httpx.AsyncClient(timeout=60.0) as client:
         async with client.stream(
             "POST",
@@ -62,8 +66,6 @@ async def stream_llm_response(system_prompt: str, messages: list[dict], history:
                     continue
                 if line == "data: [DONE]":
                     break
-                
-                import json
                 try:
                     data = json.loads(line[6:])
                     delta = data["choices"][0].get("delta", {})

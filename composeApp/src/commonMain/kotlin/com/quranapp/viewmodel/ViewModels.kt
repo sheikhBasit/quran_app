@@ -30,6 +30,7 @@ data class QuranUiState(
     val currentSurah: Int = 1,
     val tafsiers: List<TafsirEntry> = emptyList(),
     val arabicFontSize: Float = 28f,
+    val showWordBreakdown: Boolean = false,
 )
 
 class QuranViewModel(
@@ -109,6 +110,8 @@ class QuranViewModel(
     }
 
     fun toggleTranslation() = _uiState.update { it.copy(showTranslation = !it.showTranslation) }
+
+    fun toggleWordBreakdown() = _uiState.update { it.copy(showWordBreakdown = !it.showWordBreakdown) }
 
     fun toggleScript() = _uiState.update {
         it.copy(script = if (it.script == QuranScript.HAFS) QuranScript.WARSH else QuranScript.HAFS)

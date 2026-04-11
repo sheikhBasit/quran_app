@@ -1,7 +1,12 @@
 package com.quranapp.di
 
 import com.quranapp.data.remote.ChatbotRemoteDataSource
+import com.quranapp.data.remote.UnderstandRemoteDataSource
 import com.quranapp.data.repository.*
+import com.quranapp.data.repository.LearningRepositoryImpl
+import com.quranapp.domain.repository.LearningRepository
+import com.quranapp.domain.usecase.learning.*
+import com.quranapp.viewmodel.LearningViewModel
 import com.quranapp.db.QuranDatabase
 import com.quranapp.domain.repository.*
 import com.quranapp.domain.usecase.chatbot.SendChatMessageUseCase
@@ -37,6 +42,7 @@ val networkModule = module {
         }
     }
     single { ChatbotRemoteDataSource(get(), get(org.koin.core.qualifier.named("baseUrl"))) }
+    single { UnderstandRemoteDataSource(get(), get(org.koin.core.qualifier.named("baseUrl"))) }
 }
 
 val settingsModule = module {
@@ -55,6 +61,7 @@ val repositoryModule = module {
     single<UserDataRepository> { UserDataRepositoryImpl(get()) }
     single<SearchRepository> { SearchRepositoryImpl(get()) }
     single<SettingsRepository> { SettingsRepositoryImpl(get<ObservableSettings>()) }
+    single<LearningRepository> { LearningRepositoryImpl(get()) }
 }
 
 val useCaseModule = module {
@@ -85,6 +92,16 @@ val useCaseModule = module {
 
     // Search
     factory { SearchUseCase(get()) }
+
+    // Learning
+    factory { GetWordMeaningsUseCase(get()) }
+    factory { AddToWordBankUseCase(get()) }
+    factory { GetDueFlashcardsUseCase(get()) }
+    factory { RecordReviewUseCase(get()) }
+    factory { MarkAyahStudiedUseCase(get()) }
+    factory { GetProgressUseCase(get()) }
+    factory { IsInWordBankUseCase(get()) }
+    factory { UnderstandAyahUseCase(get()) }
 }
 
 val viewModelModule = module {
@@ -95,6 +112,7 @@ val viewModelModule = module {
     factory { SettingsViewModel(get()) }
     factory { PrayerViewModel(get(), get(), get()) }
     factory { QiblaViewModel(get(), get(), get()) }
+    factory { LearningViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
 }
 
 val appModule = module {

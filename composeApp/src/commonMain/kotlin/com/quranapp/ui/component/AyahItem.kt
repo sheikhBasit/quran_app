@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.quranapp.domain.model.Ayah
 import com.quranapp.domain.model.QuranScript
+import com.quranapp.domain.model.WordMeaning
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -24,6 +25,10 @@ fun AyahItem(
     onTafsirClick: () -> Unit,
     fontSize: Float = 28f,
     modifier: Modifier = Modifier,
+    showWordBreakdown: Boolean = false,
+    wordMeanings: List<WordMeaning> = emptyList(),
+    onWordClick: (WordMeaning) -> Unit = {},
+    onUnderstandClick: () -> Unit = {},
 ) {
     Column(
         modifier = modifier
@@ -74,7 +79,7 @@ fun AyahItem(
 
         if (showTranslation) {
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             // English Translation
             Text(
                 text = ayah.translationEnglish,
@@ -83,6 +88,18 @@ fun AyahItem(
                 textAlign = TextAlign.Left,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
             )
+        }
+
+        if (showWordBreakdown && wordMeanings.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(12.dp))
+            WordBreakdownRow(
+                words = wordMeanings,
+                onWordClick = onWordClick,
+            )
+        }
+
+        TextButton(onClick = onUnderstandClick) {
+            Text("Understand this ayah", style = MaterialTheme.typography.labelMedium)
         }
     }
 }

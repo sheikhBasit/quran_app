@@ -12,20 +12,28 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import com.quranapp.viewmodel.SettingsViewModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.quranapp.ui.component.ProgressDashboard
 import com.quranapp.ui.screens.prayer.PrayerTimesScreen
 import com.quranapp.ui.screens.qibla.QiblaScreen
+import com.quranapp.viewmodel.LearningViewModel
+import com.quranapp.viewmodel.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel) {
+fun SettingsScreen(viewModel: SettingsViewModel, learningViewModel: LearningViewModel) {
     val themeMode by viewModel.themeMode.collectAsState()
     val showTranslation by viewModel.showTranslation.collectAsState()
     val notificationsEnabled by viewModel.notificationsEnabled.collectAsState()
     val arabicFontSize by viewModel.arabicFontSize.collectAsState()
     val navigator = LocalNavigator.currentOrThrow
+
+    val learningState by learningViewModel.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        learningViewModel.refreshProgress()
+    }
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("Settings") }) }
@@ -111,6 +119,17 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                     subtitle = "Find direction of Kaaba",
                     onClick = { navigator.push(QiblaScreen) }
                 )
+            }
+
+            item { HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp)) }
+            item { SettingsSectionHeader("Learning Progress") }
+            item {
+                learningState.progress?.let { progress ->
+                    ProgressDashboard(
+                        progress = progress,
+                        onStartReview = { learningViewModel.startFlashcardSession() }
+                    )
+                }
             }
 
             item { HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp)) }
