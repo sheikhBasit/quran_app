@@ -1,0 +1,33 @@
+CREATE TABLE IF NOT EXISTS word_meanings (
+    id                    INTEGER PRIMARY KEY AUTOINCREMENT,
+    surah_number          INTEGER NOT NULL,
+    ayah_number           INTEGER NOT NULL,
+    word_position         INTEGER NOT NULL,
+    arabic_word           TEXT    NOT NULL,
+    transliteration       TEXT    NOT NULL DEFAULT '',
+    english_meaning       TEXT    NOT NULL DEFAULT '',
+    root_arabic           TEXT,
+    root_english          TEXT,
+    quran_occurrence_count INTEGER DEFAULT 0,
+    UNIQUE(surah_number, ayah_number, word_position)
+);
+
+CREATE INDEX IF NOT EXISTS idx_word_meanings_ayah
+    ON word_meanings(surah_number, ayah_number);
+
+selectByAyah:
+SELECT * FROM word_meanings
+WHERE surah_number = :surahNumber AND ayah_number = :ayahNumber
+ORDER BY word_position;
+
+selectById:
+SELECT * FROM word_meanings
+WHERE id = :id;
+
+insert:
+INSERT OR IGNORE INTO word_meanings
+    (surah_number, ayah_number, word_position, arabic_word,
+     transliteration, english_meaning, root_arabic, root_english, quran_occurrence_count)
+VALUES
+    (:surahNumber, :ayahNumber, :wordPosition, :arabicWord,
+     :transliteration, :englishMeaning, :rootArabic, :rootEnglish, :occurrenceCount);
