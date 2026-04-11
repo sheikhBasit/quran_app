@@ -90,7 +90,7 @@ CREATE TABLE IF NOT EXISTS studied_ayahs (
 );
 
 markStudied:
-INSERT OR REPLACE INTO studied_ayahs(surah_number, ayah_number)
+INSERT OR IGNORE INTO studied_ayahs(surah_number, ayah_number)
 VALUES (:surahNumber, :ayahNumber);
 
 countStudied:
