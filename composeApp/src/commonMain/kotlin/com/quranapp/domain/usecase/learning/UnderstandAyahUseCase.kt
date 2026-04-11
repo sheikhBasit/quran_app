@@ -3,8 +3,8 @@ package com.quranapp.domain.usecase.learning
 import com.quranapp.data.remote.UnderstandRemoteDataSource
 import kotlinx.coroutines.flow.Flow
 
-class UnderstandAyahUseCase(private val remote: UnderstandRemoteDataSource) {
-    operator fun invoke(
+open class UnderstandAyahUseCase(private val remote: UnderstandRemoteDataSource) {
+    open operator fun invoke(
         surah: Int,
         ayah: Int,
         arabicText: String,

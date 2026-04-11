@@ -25,7 +25,9 @@ private data class UnderstandSection(
 
 /** Parses the 4-section streaming response into structured cards. */
 private fun parseUnderstandResponse(raw: String): List<UnderstandSection> {
-    val headers = listOf("CONTEXT", "WORD HIGHLIGHTS", "SCHOLAR VIEW", "PRACTICAL LESSON")
+    val labels = listOf("CONTEXT", "WORD HIGHLIGHTS", "SCHOLAR VIEW", "PRACTICAL LESSON")
+    // Full header strings as they appear in LLM output — used for boundary detection
+    val fullHeaders = labels.map { "## $it" }
     val icons = listOf(
         Icons.Default.History,
         Icons.Default.Spellcheck,
@@ -39,19 +41,19 @@ private fun parseUnderstandResponse(raw: String): List<UnderstandSection> {
         Color(0xFFE65100), // orange — Practical Lesson
     )
     val sections = mutableListOf<UnderstandSection>()
-    for (i in headers.indices) {
-        val start = raw.indexOf(headers[i])
+    for (i in fullHeaders.indices) {
+        val start = raw.indexOf(fullHeaders[i])
         if (start == -1) continue
-        val contentStart = start + headers[i].length
-        val end = if (i + 1 < headers.size) {
-            val nextIdx = raw.indexOf(headers[i + 1], contentStart)
+        val contentStart = start + fullHeaders[i].length
+        val end = if (i + 1 < fullHeaders.size) {
+            val nextIdx = raw.indexOf(fullHeaders[i + 1], contentStart)
             if (nextIdx == -1) raw.length else nextIdx
         } else raw.length
         val content = raw.substring(contentStart, end).trim()
         if (content.isNotEmpty()) {
             sections.add(
                 UnderstandSection(
-                    header = headers[i].lowercase().replaceFirstChar { it.uppercase() },
+                    header = labels[i].lowercase().replaceFirstChar { it.uppercase() },
                     icon = icons[i],
                     color = colors[i],
                     content = content,
