@@ -1,0 +1,106 @@
+-- ── Word Bank ──────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS word_bank (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    surah_number   INTEGER NOT NULL,
+    ayah_number    INTEGER NOT NULL,
+    word_position  INTEGER NOT NULL,
+    added_at       INTEGER NOT NULL DEFAULT (strftime('%s','now')),
+    UNIQUE(surah_number, ayah_number, word_position)
+);
+
+insertWordBank:
+INSERT OR IGNORE INTO word_bank(surah_number, ayah_number, word_position)
+VALUES (:surahNumber, :ayahNumber, :wordPosition);
+
+isInWordBank:
+SELECT COUNT(*) FROM word_bank
+WHERE surah_number = :surahNumber
+  AND ayah_number  = :ayahNumber
+  AND word_position = :wordPosition;
+
+countWordBank:
+SELECT COUNT(*) FROM word_bank;
+
+selectWordBankIdByPosition:
+SELECT id FROM word_bank
+WHERE surah_number = :surahNumber
+  AND ayah_number  = :ayahNumber
+  AND word_position = :wordPosition;
+
+-- ── Flashcard Reviews (SM-2) ───────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS flashcard_reviews (
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    word_bank_id     INTEGER NOT NULL UNIQUE,
+    next_review_at   INTEGER NOT NULL DEFAULT (strftime('%s','now')),
+    interval_days    INTEGER NOT NULL DEFAULT 1,
+    ease_factor      REAL    NOT NULL DEFAULT 2.5,
+    repetitions      INTEGER NOT NULL DEFAULT 0,
+    last_reviewed_at INTEGER,
+    FOREIGN KEY(word_bank_id) REFERENCES word_bank(id) ON DELETE CASCADE
+);
+
+insertReview:
+INSERT OR IGNORE INTO flashcard_reviews(word_bank_id)
+VALUES (:wordBankId);
+
+selectDueReviews:
+SELECT
+    fr.id,
+    fr.word_bank_id,
+    fr.next_review_at,
+    fr.interval_days,
+    fr.ease_factor,
+    fr.repetitions,
+    fr.last_reviewed_at,
+    wm.arabic_word,
+    wm.transliteration,
+    wm.english_meaning,
+    wm.surah_number AS wm_surah,
+    wm.ayah_number  AS wm_ayah
+FROM flashcard_reviews fr
+JOIN word_bank wb ON fr.word_bank_id = wb.id
+JOIN word_meanings wm
+    ON wb.surah_number  = wm.surah_number
+   AND wb.ayah_number   = wm.ayah_number
+   AND wb.word_position = wm.word_position
+WHERE fr.next_review_at <= :nowEpoch
+ORDER BY fr.next_review_at
+LIMIT 50;
+
+countDueReviews:
+SELECT COUNT(*) FROM flashcard_reviews
+WHERE next_review_at <= :nowEpoch;
+
+updateReview:
+UPDATE flashcard_reviews
+SET next_review_at   = :nextReviewAt,
+    interval_days    = :intervalDays,
+    ease_factor      = :easeFactor,
+    repetitions      = :repetitions,
+    last_reviewed_at = :lastReviewedAt
+WHERE id = :id;
+
+-- ── Studied Ayahs ──────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS studied_ayahs (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    surah_number INTEGER NOT NULL,
+    ayah_number  INTEGER NOT NULL,
+    studied_at   INTEGER NOT NULL DEFAULT (strftime('%s','now')),
+    UNIQUE(surah_number, ayah_number)
+);
+
+markStudied:
+INSERT OR REPLACE INTO studied_ayahs(surah_number, ayah_number)
+VALUES (:surahNumber, :ayahNumber);
+
+countStudied:
+SELECT COUNT(*) FROM studied_ayahs;
+
+isStudied:
+SELECT COUNT(*) FROM studied_ayahs
+WHERE surah_number = :surahNumber AND ayah_number = :ayahNumber;
+
+countStudiedBySurah:
+SELECT surah_number, COUNT(*) AS count_
+FROM studied_ayahs
+GROUP BY surah_number;
