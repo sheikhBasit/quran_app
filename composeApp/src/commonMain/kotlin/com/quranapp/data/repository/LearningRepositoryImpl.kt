@@ -3,6 +3,7 @@ package com.quranapp.data.repository
 import com.quranapp.db.QuranDatabase
 import com.quranapp.domain.model.*
 import com.quranapp.domain.repository.LearningRepository
+import com.quranapp.util.currentTimeMillis
 
 class LearningRepositoryImpl(
     private val db: QuranDatabase,
@@ -19,6 +20,11 @@ class LearningRepositoryImpl(
             surahNumber.toLong(), ayahNumber.toLong(), wordPosition.toLong()
         )
     }
+
+    override suspend fun getWordBankId(surahNumber: Int, ayahNumber: Int, wordPosition: Int): Long? =
+        db.learningDataQueries
+            .selectWordBankIdByPosition(surahNumber.toLong(), ayahNumber.toLong(), wordPosition.toLong())
+            .executeAsOneOrNull()
 
     override suspend fun isInWordBank(surahNumber: Int, ayahNumber: Int, wordPosition: Int): Boolean =
         db.learningDataQueries
@@ -52,7 +58,7 @@ class LearningRepositoryImpl(
         db.learningDataQueries.countDueReviews(nowEpoch).executeAsOne().toInt()
 
     override suspend fun updateReview(result: ReviewResult) {
-        val nowEpoch = System.currentTimeMillis() / 1000L
+        val nowEpoch = currentTimeMillis() / 1000L
         db.learningDataQueries.updateReview(
             nextReviewAt = result.nextReviewEpoch,
             intervalDays = result.nextIntervalDays.toLong(),

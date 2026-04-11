@@ -2,6 +2,7 @@ package com.quranapp.domain.usecase.learning
 
 import com.quranapp.domain.model.ReviewRating
 import com.quranapp.domain.model.ReviewResult
+import com.quranapp.util.currentTimeMillis
 
 /**
  * SM-2 spaced repetition algorithm.
@@ -13,7 +14,7 @@ fun calculateNextReview(
     easeFactor: Double,
     repetitions: Int,
     rating: ReviewRating,
-    nowEpoch: Long = System.currentTimeMillis() / 1000L,
+    nowEpoch: Long = currentTimeMillis() / 1000L,
     reviewId: Long = 0L,
 ): ReviewResult {
     val (newInterval, newEase, newReps) = when (rating) {

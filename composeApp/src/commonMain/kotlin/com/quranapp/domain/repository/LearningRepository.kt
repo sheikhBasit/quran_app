@@ -8,6 +8,7 @@ interface LearningRepository {
 
     // Word bank (Layer 3)
     suspend fun addToWordBank(surahNumber: Int, ayahNumber: Int, wordPosition: Int)
+    suspend fun getWordBankId(surahNumber: Int, ayahNumber: Int, wordPosition: Int): Long?
     suspend fun isInWordBank(surahNumber: Int, ayahNumber: Int, wordPosition: Int): Boolean
     suspend fun getWordBankCount(): Int
 
