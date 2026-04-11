@@ -36,7 +36,6 @@ def fetch_verses(surah_number: int) -> list[dict]:
                 raise
             print(f"  Retry {attempt+1} for surah {surah_number}: {e}")
             time.sleep(2)
-    return []
 
 
 def seed_surah(conn: sqlite3.Connection, surah_number: int) -> int:
@@ -61,7 +60,8 @@ def seed_surah(conn: sqlite3.Connection, surah_number: int) -> int:
                 """,
                 (surah_number, ayah_number, pos, arabic, transliteration, english),
             )
-            count += 1
+            if cursor.rowcount > 0:
+                count += 1
     conn.commit()
     return count
 
@@ -71,7 +71,8 @@ def main():
     if DB_PATH is None:
         # Try to find it dynamically
         import glob
-        matches = glob.glob("/home/basitdev/Me/Quran_App/**/*.db", recursive=True)
+        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        matches = glob.glob(os.path.join(project_root, "**/*.db"), recursive=True)
         if matches:
             DB_PATH = matches[0]
             print(f"Found DB at: {DB_PATH}")
