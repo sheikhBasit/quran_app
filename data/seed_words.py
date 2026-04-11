@@ -36,6 +36,7 @@ def fetch_verses(surah_number: int) -> list[dict]:
                 raise
             print(f"  Retry {attempt+1} for surah {surah_number}: {e}")
             time.sleep(2)
+    return []  # unreachable — final attempt always raises; satisfies type checker
 
 
 def seed_surah(conn: sqlite3.Connection, surah_number: int) -> int:
