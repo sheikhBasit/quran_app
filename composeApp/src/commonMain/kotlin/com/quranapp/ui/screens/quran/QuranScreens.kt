@@ -18,6 +18,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import androidx.compose.foundation.pager.*
 import com.quranapp.ui.component.*
+import com.quranapp.viewmodel.LearningViewModel
 import com.quranapp.viewmodel.QuranViewModel
 import kotlinx.coroutines.launch
 
@@ -110,127 +111,202 @@ data class QuranReaderScreen(val surahNumber: Int) : Screen {
         val uiState by viewModel.uiState.collectAsState()
         val navigator = LocalNavigator.currentOrThrow
 
+        val learningViewModel = getScreenModel<LearningViewModel>()
+        val learningState by learningViewModel.uiState.collectAsState()
+
         val scope = rememberCoroutineScope()
         val tafsirSheetState = rememberModalBottomSheetState()
         var showTafsirSheet by remember { mutableStateOf(false) }
         var selectedAyahForTafsir by remember { mutableStateOf<com.quranapp.domain.model.Ayah?>(null) }
-        
+
         val annotationSheetState = rememberModalBottomSheetState()
         var showAnnotationSheet by remember { mutableStateOf(false) }
         var selectedAyahForAnnotation by remember { mutableStateOf<com.quranapp.domain.model.Ayah?>(null) }
+
+        val wordDetailSheetState = rememberModalBottomSheetState()
+        val understandSheetState = rememberModalBottomSheetState()
 
         // Load surah on first entry
         androidx.compose.runtime.LaunchedEffect(surahNumber) {
             viewModel.loadSurah(surahNumber)
         }
 
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = {
-                        val surah = uiState.surahs.find { it.number == surahNumber }
-                        Text(surah?.nameTransliteration ?: "Surah $surahNumber")
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = { navigator.pop() }) {
-                            Icon(
-                                imageVector = Icons.Default.ArrowBack,
-                                contentDescription = "Back"
-                            )
-                        }
-                    },
-                    actions = {
-                        IconButton(onClick = { viewModel.toggleTranslation() }) {
-                            Icon(
-                                imageVector = Icons.Default.Translate,
-                                contentDescription = "Toggle Translation",
-                                tint = if (uiState.showTranslation) MaterialTheme.colorScheme.primary else LocalContentColor.current
-                            )
-                        }
-                        IconButton(onClick = { viewModel.toggleReadingMode() }) {
-                            Icon(
-                                imageVector = if (uiState.readingMode == com.quranapp.domain.model.ReadingMode.SCROLL)
-                                    Icons.Default.MenuBook
-                                else
-                                    Icons.Default.FormatListBulleted,
-                                contentDescription = "Toggle Mode"
-                            )
-                        }
-                    }
-                )
-            }
-        ) { padding ->
-            if (uiState.isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
+        // When word breakdown is toggled on, load word meanings for all ayahs in the surah
+        androidx.compose.runtime.LaunchedEffect(uiState.showWordBreakdown, uiState.ayahs) {
+            if (uiState.showWordBreakdown && uiState.ayahs.isNotEmpty()) {
+                uiState.ayahs.forEach { ayah ->
+                    learningViewModel.loadWordMeanings(surahNumber, ayah.ayahNumber)
                 }
-            } else {
-                when (uiState.readingMode) {
-                    com.quranapp.domain.model.ReadingMode.SCROLL -> {
-                        LazyColumn(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(padding)
-                        ) {
-                            items(uiState.ayahs) { ayah ->
-                                    AyahItem(
-                                        ayah = ayah,
-                                        showTranslation = uiState.showTranslation,
-                                        script = uiState.script,
-                                        fontSize = uiState.arabicFontSize,
-                                        onLongClick = { 
-                                        selectedAyahForAnnotation = ayah
-                                        showAnnotationSheet = true 
-                                    },
-                                    onTafsirClick = { 
-                                        selectedAyahForTafsir = ayah
-                                        viewModel.loadTafsir(ayah)
-                                        showTafsirSheet = true 
-                                    }
+            } else if (!uiState.showWordBreakdown) {
+                learningViewModel.clearWordMeanings()
+            }
+        }
+
+        Box(modifier = Modifier.fillMaxSize()) {
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        title = {
+                            val surah = uiState.surahs.find { it.number == surahNumber }
+                            Text(surah?.nameTransliteration ?: "Surah $surahNumber")
+                        },
+                        navigationIcon = {
+                            IconButton(onClick = { navigator.pop() }) {
+                                Icon(
+                                    imageVector = Icons.Default.ArrowBack,
+                                    contentDescription = "Back"
                                 )
-                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                            }
+                        },
+                        actions = {
+                            IconButton(onClick = { viewModel.toggleTranslation() }) {
+                                Icon(
+                                    imageVector = Icons.Default.Translate,
+                                    contentDescription = "Toggle Translation",
+                                    tint = if (uiState.showTranslation) MaterialTheme.colorScheme.primary else LocalContentColor.current
+                                )
+                            }
+                            IconButton(onClick = {
+                                viewModel.toggleWordBreakdown()
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.TextFields,
+                                    contentDescription = "Toggle Word Breakdown",
+                                    tint = if (uiState.showWordBreakdown) MaterialTheme.colorScheme.primary else LocalContentColor.current
+                                )
+                            }
+                            IconButton(onClick = { viewModel.toggleReadingMode() }) {
+                                Icon(
+                                    imageVector = if (uiState.readingMode == com.quranapp.domain.model.ReadingMode.SCROLL)
+                                        Icons.Default.MenuBook
+                                    else
+                                        Icons.Default.FormatListBulleted,
+                                    contentDescription = "Toggle Mode"
+                                )
                             }
                         }
+                    )
+                }
+            ) { padding ->
+                if (uiState.isLoading) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
                     }
-                    com.quranapp.domain.model.ReadingMode.PAGE -> {
-                        val pagerState = rememberPagerState(pageCount = { 604 }) // 604 pages in standard Madani Mushaf
-                        
-                        LaunchedEffect(pagerState.currentPage) {
-                            viewModel.loadPage(pagerState.currentPage + 1)
-                        }
-
-                        HorizontalPager(
-                            state = pagerState,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(padding),
-                            reverseLayout = true // Quran pages go Right-to-Left
-                        ) { pageIdx ->
-                            LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+                } else {
+                    when (uiState.readingMode) {
+                        com.quranapp.domain.model.ReadingMode.SCROLL -> {
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(padding)
+                            ) {
                                 items(uiState.ayahs) { ayah ->
                                     AyahItem(
                                         ayah = ayah,
                                         showTranslation = uiState.showTranslation,
                                         script = uiState.script,
                                         fontSize = uiState.arabicFontSize,
-                                        onLongClick = { 
+                                        onLongClick = {
                                             selectedAyahForAnnotation = ayah
-                                            showAnnotationSheet = true 
+                                            showAnnotationSheet = true
                                         },
-                                        onTafsirClick = { 
+                                        onTafsirClick = {
                                             selectedAyahForTafsir = ayah
                                             viewModel.loadTafsir(ayah)
-                                            showTafsirSheet = true 
-                                        }
+                                            showTafsirSheet = true
+                                        },
+                                        showWordBreakdown = uiState.showWordBreakdown,
+                                        wordMeanings = if (uiState.showWordBreakdown)
+                                            learningState.wordMeanings.filter { it.ayahNumber == ayah.ayahNumber }
+                                        else
+                                            emptyList(),
+                                        onWordClick = { word -> learningViewModel.selectWord(word) },
+                                        onUnderstandClick = {
+                                            learningViewModel.startUnderstand(
+                                                surahNumber,
+                                                ayah.ayahNumber,
+                                                ayah.arabicText(uiState.script),
+                                                ayah.translationEnglish,
+                                            )
+                                        },
                                     )
                                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                                 }
                             }
                         }
+                        com.quranapp.domain.model.ReadingMode.PAGE -> {
+                            val pagerState = rememberPagerState(pageCount = { 604 }) // 604 pages in standard Madani Mushaf
+
+                            LaunchedEffect(pagerState.currentPage) {
+                                viewModel.loadPage(pagerState.currentPage + 1)
+                            }
+
+                            HorizontalPager(
+                                state = pagerState,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(padding),
+                                reverseLayout = true // Quran pages go Right-to-Left
+                            ) { pageIdx ->
+                                LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+                                    items(uiState.ayahs) { ayah ->
+                                        AyahItem(
+                                            ayah = ayah,
+                                            showTranslation = uiState.showTranslation,
+                                            script = uiState.script,
+                                            fontSize = uiState.arabicFontSize,
+                                            onLongClick = {
+                                                selectedAyahForAnnotation = ayah
+                                                showAnnotationSheet = true
+                                            },
+                                            onTafsirClick = {
+                                                selectedAyahForTafsir = ayah
+                                                viewModel.loadTafsir(ayah)
+                                                showTafsirSheet = true
+                                            },
+                                            showWordBreakdown = uiState.showWordBreakdown,
+                                            wordMeanings = if (uiState.showWordBreakdown)
+                                                learningState.wordMeanings.filter { it.ayahNumber == ayah.ayahNumber }
+                                            else
+                                                emptyList(),
+                                            onWordClick = { word -> learningViewModel.selectWord(word) },
+                                            onUnderstandClick = {
+                                                learningViewModel.startUnderstand(
+                                                    surahNumber,
+                                                    ayah.ayahNumber,
+                                                    ayah.arabicText(uiState.script),
+                                                    ayah.translationEnglish,
+                                                )
+                                            },
+                                        )
+                                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                                    }
+                                }
+                            }
+                        }
                     }
+                }
+            }
+
+            // FlashcardSession full-screen overlay
+            if (learningState.dueFlashcards.isNotEmpty() || learningState.sessionComplete) {
+                Surface(modifier = Modifier.fillMaxSize()) {
+                    FlashcardSession(
+                        cards = learningState.dueFlashcards,
+                        currentIndex = learningState.currentCardIndex,
+                        showAnswer = learningState.showAnswer,
+                        sessionComplete = learningState.sessionComplete,
+                        sessionCorrect = learningState.sessionCorrect,
+                        sessionTotal = learningState.sessionTotal,
+                        onReveal = { learningViewModel.revealAnswer() },
+                        onRating = { rating -> learningViewModel.submitRating(rating) },
+                        onDismiss = {
+                            learningViewModel.startFlashcardSession() // resets state
+                        },
+                    )
                 }
             }
         }
@@ -260,6 +336,40 @@ data class QuranReaderScreen(val surahNumber: Int) : Screen {
                     onHighlight = { /* TODO */ },
                     onNote = { /* TODO */ },
                     onShare = { /* TODO */ }
+                )
+            }
+        }
+
+        // Word detail sheet
+        if (learningState.selectedWord != null) {
+            ModalBottomSheet(
+                onDismissRequest = { learningViewModel.selectWord(null) },
+                sheetState = wordDetailSheetState,
+            ) {
+                WordDetailSheet(
+                    word = learningState.selectedWord!!,
+                    isInWordBank = learningState.selectedWordInBank,
+                    onAddToWordBank = {
+                        val word = learningState.selectedWord!!
+                        learningViewModel.addWordToBank(word.surahNumber, word.ayahNumber, word.wordPosition)
+                        learningViewModel.selectWord(null)
+                    },
+                    onDismiss = { learningViewModel.selectWord(null) },
+                )
+            }
+        }
+
+        // Understand sheet
+        if (learningState.understandText.isNotEmpty() || learningState.isLoadingUnderstand) {
+            ModalBottomSheet(
+                onDismissRequest = { learningViewModel.clearUnderstand() },
+                sheetState = understandSheetState,
+            ) {
+                UnderstandSheet(
+                    streamText = learningState.understandText,
+                    isLoading = learningState.isLoadingUnderstand,
+                    error = learningState.understandError,
+                    onDismiss = { learningViewModel.clearUnderstand() },
                 )
             }
         }

@@ -36,7 +36,7 @@ class UnderstandRemoteDataSource(
                 val line = channel.readUTF8Line()
                 if (line != null && line.startsWith("data: ")) {
                     val token = line.substring(6)
-                    if (token.isNotEmpty()) emit(token)
+                    if (token.isNotEmpty() && token != "[DONE]") emit(token)
                 }
             }
         }

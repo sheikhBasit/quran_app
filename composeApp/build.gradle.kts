@@ -99,6 +99,7 @@ kotlin {
             implementation(libs.androidx.activity.compose)
             implementation(libs.androidx.core.ktx)
             implementation("com.google.android.gms:play-services-location:21.2.0")
+            implementation("androidx.work:work-runtime-ktx:2.9.1")
         }
 
         val androidInstrumentedTest by getting {

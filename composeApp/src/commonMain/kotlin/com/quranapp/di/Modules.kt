@@ -100,6 +100,7 @@ val useCaseModule = module {
     factory { RecordReviewUseCase(get()) }
     factory { MarkAyahStudiedUseCase(get()) }
     factory { GetProgressUseCase(get()) }
+    factory { IsInWordBankUseCase(get()) }
     factory { UnderstandAyahUseCase(get()) }
 }
 
@@ -111,7 +112,7 @@ val viewModelModule = module {
     factory { SettingsViewModel(get()) }
     factory { PrayerViewModel(get(), get(), get()) }
     factory { QiblaViewModel(get(), get(), get()) }
-    factory { LearningViewModel(get(), get(), get(), get(), get(), get(), get()) }
+    factory { LearningViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
 }
 
 val appModule = module {

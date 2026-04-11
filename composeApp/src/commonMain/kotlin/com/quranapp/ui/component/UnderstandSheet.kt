@@ -44,7 +44,7 @@ private fun parseUnderstandResponse(raw: String): List<UnderstandSection> {
         if (start == -1) continue
         val contentStart = start + headers[i].length
         val end = if (i + 1 < headers.size) {
-            val nextIdx = raw.indexOf(headers[i + 1])
+            val nextIdx = raw.indexOf(headers[i + 1], contentStart)
             if (nextIdx == -1) raw.length else nextIdx
         } else raw.length
         val content = raw.substring(contentStart, end).trim()

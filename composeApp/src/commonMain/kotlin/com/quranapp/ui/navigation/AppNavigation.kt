@@ -20,6 +20,7 @@ import com.quranapp.ui.screens.search.SearchScreen
 import com.quranapp.ui.screens.chatbot.ChatbotScreen
 import com.quranapp.ui.screens.settings.SettingsScreen
 import cafe.adriel.voyager.koin.getScreenModel
+import com.quranapp.viewmodel.LearningViewModel
 import com.quranapp.viewmodel.SettingsViewModel
 
 @Composable
@@ -111,7 +112,7 @@ object ChatbotTab : Tab {
 object SettingsMainScreen : Screen {
     @Composable
     override fun Content() {
-        SettingsScreen(getScreenModel())
+        SettingsScreen(getScreenModel(), getScreenModel())
     }
 }
 

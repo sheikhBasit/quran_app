@@ -1,8 +1,10 @@
 """FastAPI application entry point."""
 from fastapi import FastAPI, Request, status
-from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+
 from app.routers import chat
+from app.routers.understand import router as understand_router
 
 app = FastAPI(title="Quran App API", version="1.0.0")
 
@@ -20,3 +22,4 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     )
 
 app.include_router(chat.router)
+app.include_router(understand_router)

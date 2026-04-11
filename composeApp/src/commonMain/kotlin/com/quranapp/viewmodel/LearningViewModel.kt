@@ -11,6 +11,8 @@ data class LearningUiState(
     // Layer 1: word breakdown
     val wordMeanings: List<WordMeaning> = emptyList(),
     val isLoadingWords: Boolean = false,
+    val selectedWord: WordMeaning? = null,
+    val selectedWordInBank: Boolean = false,
 
     // Layer 2: understand
     val understandText: String = "",
@@ -37,6 +39,7 @@ class LearningViewModel(
     private val markAyahStudied: MarkAyahStudiedUseCase,
     private val getProgress: GetProgressUseCase,
     private val understandAyah: UnderstandAyahUseCase,
+    private val isInWordBank: IsInWordBankUseCase,
 ) : ScreenModel {
 
     private val _uiState = MutableStateFlow(LearningUiState())
@@ -48,7 +51,25 @@ class LearningViewModel(
         screenModelScope.launch {
             _uiState.update { it.copy(isLoadingWords = true) }
             val words = getWordMeanings(surahNumber, ayahNumber)
-            _uiState.update { it.copy(wordMeanings = words, isLoadingWords = false) }
+            _uiState.update { state ->
+                // Merge: keep existing words for other ayahs, replace for this ayah
+                val others = state.wordMeanings.filter { it.surahNumber != surahNumber || it.ayahNumber != ayahNumber }
+                state.copy(wordMeanings = others + words, isLoadingWords = false)
+            }
+        }
+    }
+
+    fun clearWordMeanings() {
+        _uiState.update { it.copy(wordMeanings = emptyList()) }
+    }
+
+    fun selectWord(word: WordMeaning?) {
+        _uiState.update { it.copy(selectedWord = word, selectedWordInBank = false) }
+        if (word != null) {
+            screenModelScope.launch {
+                val inBank = isInWordBank(word.surahNumber, word.ayahNumber, word.wordPosition)
+                _uiState.update { it.copy(selectedWordInBank = inBank) }
+            }
         }
     }
 
@@ -85,6 +106,7 @@ class LearningViewModel(
 
     fun startFlashcardSession() {
         screenModelScope.launch {
+            _uiState.update { it.copy(sessionComplete = false) }
             val cards = getDueFlashcards()
             _uiState.update {
                 it.copy(

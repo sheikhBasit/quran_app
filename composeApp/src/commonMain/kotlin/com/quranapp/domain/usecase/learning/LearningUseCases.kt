@@ -51,3 +51,8 @@ class GetProgressUseCase(private val repo: LearningRepository) {
         return repo.getProgress(nowEpoch)
     }
 }
+
+class IsInWordBankUseCase(private val repo: LearningRepository) {
+    suspend operator fun invoke(surahNumber: Int, ayahNumber: Int, wordPosition: Int): Boolean =
+        repo.isInWordBank(surahNumber, ayahNumber, wordPosition)
+}
