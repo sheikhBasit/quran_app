@@ -107,3 +107,25 @@ pytest backend/tests/
 ---
 
 Built by [Abdul Basit](https://github.com/sheikhBasit) · FastAPI · Compose Multiplatform · pgvector · Claude API · Azure
+
+
+---
+
+## Knowledge Graph
+
+This repo is indexed by [Understand Anything](https://github.com/Lum1104/Understand-Anything) — a multi-agent pipeline that builds a knowledge graph of every file, function, class, and dependency.
+
+The graph lives at `.understand-anything/knowledge-graph.json` and can be explored visually:
+
+```bash
+# In Claude Code, from this repo root:
+/understand-dashboard
+```
+
+To rebuild the graph after major changes:
+
+```bash
+~/scripts/graphify-all.sh
+```
+
+> Graph covers: files · functions · classes · imports · architecture layers · plain-English summaries · guided tours.

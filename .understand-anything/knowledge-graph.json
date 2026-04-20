@@ -1,0 +1,418 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2026-04-20T00:00:00.000Z",
+  "projectRoot": "/home/basitdev/Me/Quran_App",
+  "nodes": [
+    {
+      "id": "file:composeApp/src/commonMain/kotlin/com/quranapp/domain/model/Models.kt",
+      "type": "file",
+      "name": "Models.kt",
+      "filePath": "/home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/domain/model/Models.kt",
+      "layer": "data",
+      "summary": "Core Quran domain models: Surah, Ayah, Word-level breakdown, Tafsir, and related data structures shared across all platforms.",
+      "language": "kotlin",
+      "concepts": ["domain model", "Quran data", "multiplatform"]
+    },
+    {
+      "id": "file:composeApp/src/commonMain/kotlin/com/quranapp/domain/model/LearningModels.kt",
+      "type": "file",
+      "name": "LearningModels.kt",
+      "filePath": "/home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/domain/model/LearningModels.kt",
+      "layer": "data",
+      "summary": "Learning feature domain models: Flashcard, SpacedRepetitionCard, LearningSession, and progress tracking structures for the Ayah memorisation system.",
+      "language": "kotlin",
+      "concepts": ["spaced repetition", "flashcards", "learning", "domain model"]
+    },
+    {
+      "id": "file:composeApp/src/commonMain/kotlin/com/quranapp/domain/repository/Repositories.kt",
+      "type": "file",
+      "name": "Repositories.kt",
+      "filePath": "/home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/domain/repository/Repositories.kt",
+      "layer": "data",
+      "summary": "Repository interfaces for Quran, Hadith, Prayer, Qibla, and Search data sources. Defines the contracts that data-layer implementations must satisfy.",
+      "language": "kotlin",
+      "concepts": ["repository pattern", "interface", "clean architecture"]
+    },
+    {
+      "id": "file:composeApp/src/commonMain/kotlin/com/quranapp/domain/repository/LearningRepository.kt",
+      "type": "file",
+      "name": "LearningRepository.kt",
+      "filePath": "/home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/domain/repository/LearningRepository.kt",
+      "layer": "data",
+      "summary": "Repository interface for the learning / spaced-repetition feature: save cards, retrieve due cards, record review outcomes.",
+      "language": "kotlin",
+      "concepts": ["repository pattern", "spaced repetition"]
+    },
+    {
+      "id": "file:composeApp/src/commonMain/kotlin/com/quranapp/domain/repository/ChatHistoryRepository.kt",
+      "type": "file",
+      "name": "ChatHistoryRepository.kt",
+      "filePath": "/home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/domain/repository/ChatHistoryRepository.kt",
+      "layer": "data",
+      "summary": "Repository interface for persisting and retrieving AI chatbot conversation history.",
+      "language": "kotlin",
+      "concepts": ["chat", "repository pattern", "persistence"]
+    },
+    {
+      "id": "file:composeApp/src/commonMain/kotlin/com/quranapp/domain/repository/SettingsRepository.kt",
+      "type": "file",
+      "name": "SettingsRepository.kt",
+      "filePath": "/home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/domain/repository/SettingsRepository.kt",
+      "layer": "data",
+      "summary": "Repository interface for user settings: theme, translation language, reciter preference, etc.",
+      "language": "kotlin",
+      "concepts": ["settings", "repository pattern"]
+    },
+    {
+      "id": "file:composeApp/src/commonMain/kotlin/com/quranapp/domain/usecase/quran/QuranUseCases.kt",
+      "type": "file",
+      "name": "QuranUseCases.kt",
+      "filePath": "/home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/domain/usecase/quran/QuranUseCases.kt",
+      "layer": "service",
+      "summary": "Aggregated use-case holder for Quran features: get surah list, get ayahs for a surah, get word-level breakdown, and retrieve tafsir.",
+      "language": "kotlin",
+      "concepts": ["use case", "clean architecture", "Quran"]
+    },
+    {
+      "id": "file:composeApp/src/commonMain/kotlin/com/quranapp/domain/usecase/learning/SpacedRepetitionUseCase.kt",
+      "type": "file",
+      "name": "SpacedRepetitionUseCase.kt",
+      "filePath": "/home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/domain/usecase/learning/SpacedRepetitionUseCase.kt",
+      "layer": "service",
+      "summary": "Implements SM-2 (or similar) spaced-repetition scheduling algorithm for Quran vocabulary flashcards. Calculates next review date based on recall quality rating.",
+      "language": "kotlin",
+      "concepts": ["spaced repetition", "SM-2", "algorithm", "use case"]
+    },
+    {
+      "id": "file:composeApp/src/commonMain/kotlin/com/quranapp/domain/usecase/learning/UnderstandAyahUseCase.kt",
+      "type": "file",
+      "name": "UnderstandAyahUseCase.kt",
+      "filePath": "/home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/domain/usecase/learning/UnderstandAyahUseCase.kt",
+      "layer": "service",
+      "summary": "Use case that calls the remote AI service to generate a deep explanation (understand section) for a selected Ayah, returning structured sections parsed by UnderstandSectionParser.",
+      "language": "kotlin",
+      "concepts": ["AI integration", "Ayah explanation", "use case"]
+    },
+    {
+      "id": "file:composeApp/src/commonMain/kotlin/com/quranapp/domain/usecase/chatbot/SendChatMessageUseCase.kt",
+      "type": "file",
+      "name": "SendChatMessageUseCase.kt",
+      "filePath": "/home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/domain/usecase/chatbot/SendChatMessageUseCase.kt",
+      "layer": "service",
+      "summary": "Use case to send a single chat message to the AI chatbot backend and receive a complete response.",
+      "language": "kotlin",
+      "concepts": ["chatbot", "AI", "use case"]
+    },
+    {
+      "id": "file:composeApp/src/commonMain/kotlin/com/quranapp/domain/usecase/chatbot/StreamChatMessageUseCase.kt",
+      "type": "file",
+      "name": "StreamChatMessageUseCase.kt",
+      "filePath": "/home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/domain/usecase/chatbot/StreamChatMessageUseCase.kt",
+      "layer": "service",
+      "summary": "Use case to stream a chat response from the AI chatbot backend token-by-token using Kotlin Flow.",
+      "language": "kotlin",
+      "concepts": ["streaming", "Flow", "chatbot", "use case"]
+    },
+    {
+      "id": "file:composeApp/src/commonMain/kotlin/com/quranapp/domain/usecase/prayer/PrayerUseCases.kt",
+      "type": "file",
+      "name": "PrayerUseCases.kt",
+      "filePath": "/home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/domain/usecase/prayer/PrayerUseCases.kt",
+      "layer": "service",
+      "summary": "Use cases for prayer-time calculation: fetch prayer times by coordinates, get next prayer countdown, and calculate Hijri date.",
+      "language": "kotlin",
+      "concepts": ["prayer times", "Islamic calendar", "use case"]
+    },
+    {
+      "id": "file:composeApp/src/commonMain/kotlin/com/quranapp/domain/usecase/qibla/GetQiblaDirectionUseCase.kt",
+      "type": "file",
+      "name": "GetQiblaDirectionUseCase.kt",
+      "filePath": "/home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/domain/usecase/qibla/GetQiblaDirectionUseCase.kt",
+      "layer": "service",
+      "summary": "Calculates the Qibla direction (bearing toward Mecca) from the user's GPS coordinates using spherical trigonometry.",
+      "language": "kotlin",
+      "concepts": ["Qibla", "geolocation", "trigonometry", "use case"]
+    },
+    {
+      "id": "file:composeApp/src/commonMain/kotlin/com/quranapp/data/repository/QuranRepositoryImpl.kt",
+      "type": "file",
+      "name": "QuranRepositoryImpl.kt",
+      "filePath": "/home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/data/repository/QuranRepositoryImpl.kt",
+      "layer": "data",
+      "summary": "Concrete repository that fetches Quran data from the SQLDelight local database (offline-first), falling back to the remote API when needed.",
+      "language": "kotlin",
+      "concepts": ["repository", "SQLDelight", "offline-first"]
+    },
+    {
+      "id": "file:composeApp/src/commonMain/kotlin/com/quranapp/data/repository/ChatbotRepositoryImpl.kt",
+      "type": "file",
+      "name": "ChatbotRepositoryImpl.kt",
+      "filePath": "/home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/data/repository/ChatbotRepositoryImpl.kt",
+      "layer": "data",
+      "summary": "Concrete repository that delegates chatbot requests to ChatbotRemoteDataSource and persists conversation turns via ChatHistoryRepository.",
+      "language": "kotlin",
+      "concepts": ["repository", "chatbot", "persistence"]
+    },
+    {
+      "id": "file:composeApp/src/commonMain/kotlin/com/quranapp/data/repository/LearningRepositoryImpl.kt",
+      "type": "file",
+      "name": "LearningRepositoryImpl.kt",
+      "filePath": "/home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/data/repository/LearningRepositoryImpl.kt",
+      "layer": "data",
+      "summary": "Concrete repository implementing spaced-repetition card persistence using SQLDelight.",
+      "language": "kotlin",
+      "concepts": ["repository", "SQLDelight", "spaced repetition"]
+    },
+    {
+      "id": "file:composeApp/src/commonMain/kotlin/com/quranapp/data/remote/ChatbotRemoteDataSource.kt",
+      "type": "file",
+      "name": "ChatbotRemoteDataSource.kt",
+      "filePath": "/home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/data/remote/ChatbotRemoteDataSource.kt",
+      "layer": "data",
+      "summary": "Ktor HTTP client that communicates with the FastAPI/Azure-hosted chatbot backend. Supports both full-response and streaming (SSE) modes.",
+      "language": "kotlin",
+      "concepts": ["Ktor", "HTTP client", "SSE streaming", "chatbot API"]
+    },
+    {
+      "id": "file:composeApp/src/commonMain/kotlin/com/quranapp/data/remote/UnderstandRemoteDataSource.kt",
+      "type": "file",
+      "name": "UnderstandRemoteDataSource.kt",
+      "filePath": "/home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/data/remote/UnderstandRemoteDataSource.kt",
+      "layer": "data",
+      "summary": "Ktor HTTP client that fetches AI-generated 'Understand this Ayah' explanations from the backend AI service.",
+      "language": "kotlin",
+      "concepts": ["Ktor", "HTTP client", "AI explanation"]
+    },
+    {
+      "id": "file:composeApp/src/commonMain/kotlin/com/quranapp/ui/navigation/AppNavigation.kt",
+      "type": "file",
+      "name": "AppNavigation.kt",
+      "filePath": "/home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/ui/navigation/AppNavigation.kt",
+      "layer": "ui",
+      "summary": "Compose Multiplatform navigation host. Defines the NavGraph with routes for Home (Surah list), Surah reading, Hadith, Prayer times, Qibla, Search, Chatbot, Settings, and Learning.",
+      "language": "kotlin",
+      "concepts": ["navigation", "Compose Multiplatform", "NavGraph"]
+    },
+    {
+      "id": "file:composeApp/src/commonMain/kotlin/com/quranapp/ui/screens/quran/QuranScreens.kt",
+      "type": "file",
+      "name": "QuranScreens.kt",
+      "filePath": "/home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/ui/screens/quran/QuranScreens.kt",
+      "layer": "ui",
+      "summary": "Compose screens for the Quran reading experience: Surah list screen and Ayah reader screen with word-tap interactions, tafsir bottom sheet, and annotation menu.",
+      "language": "kotlin",
+      "concepts": ["Compose UI", "Quran reader", "word interaction"]
+    },
+    {
+      "id": "file:composeApp/src/commonMain/kotlin/com/quranapp/ui/screens/chatbot/ChatbotScreen.kt",
+      "type": "file",
+      "name": "ChatbotScreen.kt",
+      "filePath": "/home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/ui/screens/chatbot/ChatbotScreen.kt",
+      "layer": "ui",
+      "summary": "AI chatbot screen with a chat bubble list, text input field, and streaming response rendering. Connects to ChatbotViewModel.",
+      "language": "kotlin",
+      "concepts": ["Compose UI", "chatbot", "streaming UI"]
+    },
+    {
+      "id": "file:composeApp/src/commonMain/kotlin/com/quranapp/ui/component/UnderstandSheet.kt",
+      "type": "file",
+      "name": "UnderstandSheet.kt",
+      "filePath": "/home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/ui/component/UnderstandSheet.kt",
+      "layer": "ui",
+      "summary": "Bottom sheet that displays the AI-generated 'Understand this Ayah' explanation, rendered from parsed sections (grammar, context, vocabulary, etc.).",
+      "language": "kotlin",
+      "concepts": ["Compose UI", "bottom sheet", "AI explanation"]
+    },
+    {
+      "id": "file:composeApp/src/commonMain/kotlin/com/quranapp/ui/component/FlashcardSession.kt",
+      "type": "file",
+      "name": "FlashcardSession.kt",
+      "filePath": "/home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/ui/component/FlashcardSession.kt",
+      "layer": "ui",
+      "summary": "Interactive flashcard UI for the spaced-repetition learning session. Shows the Arabic word, flip animation to reveal meaning, and rating buttons (Again / Hard / Good / Easy).",
+      "language": "kotlin",
+      "concepts": ["Compose UI", "flashcard", "animation", "spaced repetition"]
+    },
+    {
+      "id": "file:composeApp/src/commonMain/kotlin/com/quranapp/viewmodel/ViewModels.kt",
+      "type": "file",
+      "name": "ViewModels.kt",
+      "filePath": "/home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/viewmodel/ViewModels.kt",
+      "layer": "service",
+      "summary": "Main Quran ViewModel: holds UI state for surah list, selected surah, ayahs, loading/error states. Calls QuranUseCases and exposes StateFlow to the UI.",
+      "language": "kotlin",
+      "concepts": ["ViewModel", "StateFlow", "MVVM"]
+    },
+    {
+      "id": "file:composeApp/src/commonMain/kotlin/com/quranapp/viewmodel/LearningViewModel.kt",
+      "type": "file",
+      "name": "LearningViewModel.kt",
+      "filePath": "/home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/viewmodel/LearningViewModel.kt",
+      "layer": "service",
+      "summary": "ViewModel for the learning feature: manages flashcard session state, records review results, and updates spaced-repetition schedule via LearningUseCases.",
+      "language": "kotlin",
+      "concepts": ["ViewModel", "MVVM", "spaced repetition"]
+    },
+    {
+      "id": "file:composeApp/src/commonMain/kotlin/com/quranapp/viewmodel/PrayerViewModel.kt",
+      "type": "file",
+      "name": "PrayerViewModel.kt",
+      "filePath": "/home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/viewmodel/PrayerViewModel.kt",
+      "layer": "service",
+      "summary": "ViewModel that requests device location, calculates prayer times, and maintains a countdown timer to the next prayer.",
+      "language": "kotlin",
+      "concepts": ["ViewModel", "location", "prayer times", "timer"]
+    },
+    {
+      "id": "file:composeApp/src/commonMain/kotlin/com/quranapp/viewmodel/QiblaViewModel.kt",
+      "type": "file",
+      "name": "QiblaViewModel.kt",
+      "filePath": "/home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/viewmodel/QiblaViewModel.kt",
+      "layer": "service",
+      "summary": "ViewModel that combines GPS coordinates with compass sensor readings to compute and expose the real-time Qibla bearing angle.",
+      "language": "kotlin",
+      "concepts": ["ViewModel", "compass", "sensor", "Qibla"]
+    },
+    {
+      "id": "file:composeApp/src/commonMain/kotlin/com/quranapp/di/Modules.kt",
+      "type": "file",
+      "name": "Modules.kt",
+      "filePath": "/home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/di/Modules.kt",
+      "layer": "utility",
+      "summary": "Koin dependency injection module definitions. Wires together repositories, use cases, remote data sources, and ViewModels for the entire app.",
+      "language": "kotlin",
+      "concepts": ["dependency injection", "Koin", "DI modules"]
+    },
+    {
+      "id": "file:composeApp/src/commonMain/kotlin/com/quranapp/ui/component/UnderstandSectionParser.kt",
+      "type": "file",
+      "name": "UnderstandSectionParser.kt",
+      "filePath": "/home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/ui/component/UnderstandSectionParser.kt",
+      "layer": "utility",
+      "summary": "Parser that converts the raw AI-generated Ayah explanation text (markdown-like sections) into structured Section objects for display in UnderstandSheet.",
+      "language": "kotlin",
+      "concepts": ["parsing", "text processing", "AI output"]
+    },
+    {
+      "id": "file:composeApp/src/commonMain/kotlin/com/quranapp/util/TimeUtils.kt",
+      "type": "file",
+      "name": "TimeUtils.kt",
+      "filePath": "/home/basitdev/Me/Quran_App/composeApp/src/commonMain/kotlin/com/quranapp/util/TimeUtils.kt",
+      "layer": "utility",
+      "summary": "Cross-platform time utilities: format timestamps, calculate Hijri dates, and compute time differences for prayer countdown display.",
+      "language": "kotlin",
+      "concepts": ["utilities", "time formatting", "Hijri calendar"]
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:di-imports-repos",
+      "source": "file:composeApp/src/commonMain/kotlin/com/quranapp/di/Modules.kt",
+      "target": "file:composeApp/src/commonMain/kotlin/com/quranapp/data/repository/QuranRepositoryImpl.kt",
+      "type": "imports"
+    },
+    {
+      "id": "edge:di-imports-learning-repo",
+      "source": "file:composeApp/src/commonMain/kotlin/com/quranapp/di/Modules.kt",
+      "target": "file:composeApp/src/commonMain/kotlin/com/quranapp/data/repository/LearningRepositoryImpl.kt",
+      "type": "imports"
+    },
+    {
+      "id": "edge:quran-viewmodel-uses-usecase",
+      "source": "file:composeApp/src/commonMain/kotlin/com/quranapp/viewmodel/ViewModels.kt",
+      "target": "file:composeApp/src/commonMain/kotlin/com/quranapp/domain/usecase/quran/QuranUseCases.kt",
+      "type": "uses"
+    },
+    {
+      "id": "edge:learning-viewmodel-uses-usecase",
+      "source": "file:composeApp/src/commonMain/kotlin/com/quranapp/viewmodel/LearningViewModel.kt",
+      "target": "file:composeApp/src/commonMain/kotlin/com/quranapp/domain/usecase/learning/SpacedRepetitionUseCase.kt",
+      "type": "uses"
+    },
+    {
+      "id": "edge:prayer-viewmodel-uses-usecase",
+      "source": "file:composeApp/src/commonMain/kotlin/com/quranapp/viewmodel/PrayerViewModel.kt",
+      "target": "file:composeApp/src/commonMain/kotlin/com/quranapp/domain/usecase/prayer/PrayerUseCases.kt",
+      "type": "uses"
+    },
+    {
+      "id": "edge:qibla-viewmodel-uses-usecase",
+      "source": "file:composeApp/src/commonMain/kotlin/com/quranapp/viewmodel/QiblaViewModel.kt",
+      "target": "file:composeApp/src/commonMain/kotlin/com/quranapp/domain/usecase/qibla/GetQiblaDirectionUseCase.kt",
+      "type": "uses"
+    },
+    {
+      "id": "edge:quran-usecase-uses-repo",
+      "source": "file:composeApp/src/commonMain/kotlin/com/quranapp/domain/usecase/quran/QuranUseCases.kt",
+      "target": "file:composeApp/src/commonMain/kotlin/com/quranapp/domain/repository/Repositories.kt",
+      "type": "uses"
+    },
+    {
+      "id": "edge:quran-repo-impl-implements",
+      "source": "file:composeApp/src/commonMain/kotlin/com/quranapp/data/repository/QuranRepositoryImpl.kt",
+      "target": "file:composeApp/src/commonMain/kotlin/com/quranapp/domain/repository/Repositories.kt",
+      "type": "implements"
+    },
+    {
+      "id": "edge:chatbot-repo-uses-remote",
+      "source": "file:composeApp/src/commonMain/kotlin/com/quranapp/data/repository/ChatbotRepositoryImpl.kt",
+      "target": "file:composeApp/src/commonMain/kotlin/com/quranapp/data/remote/ChatbotRemoteDataSource.kt",
+      "type": "uses"
+    },
+    {
+      "id": "edge:understand-usecase-uses-remote",
+      "source": "file:composeApp/src/commonMain/kotlin/com/quranapp/domain/usecase/learning/UnderstandAyahUseCase.kt",
+      "target": "file:composeApp/src/commonMain/kotlin/com/quranapp/data/remote/UnderstandRemoteDataSource.kt",
+      "type": "uses"
+    },
+    {
+      "id": "edge:understand-sheet-uses-parser",
+      "source": "file:composeApp/src/commonMain/kotlin/com/quranapp/ui/component/UnderstandSheet.kt",
+      "target": "file:composeApp/src/commonMain/kotlin/com/quranapp/ui/component/UnderstandSectionParser.kt",
+      "type": "uses"
+    },
+    {
+      "id": "edge:navigation-uses-screens",
+      "source": "file:composeApp/src/commonMain/kotlin/com/quranapp/ui/navigation/AppNavigation.kt",
+      "target": "file:composeApp/src/commonMain/kotlin/com/quranapp/ui/screens/quran/QuranScreens.kt",
+      "type": "uses"
+    },
+    {
+      "id": "edge:navigation-uses-chatbot-screen",
+      "source": "file:composeApp/src/commonMain/kotlin/com/quranapp/ui/navigation/AppNavigation.kt",
+      "target": "file:composeApp/src/commonMain/kotlin/com/quranapp/ui/screens/chatbot/ChatbotScreen.kt",
+      "type": "uses"
+    },
+    {
+      "id": "edge:learning-repo-impl-implements",
+      "source": "file:composeApp/src/commonMain/kotlin/com/quranapp/data/repository/LearningRepositoryImpl.kt",
+      "target": "file:composeApp/src/commonMain/kotlin/com/quranapp/domain/repository/LearningRepository.kt",
+      "type": "implements"
+    }
+  ],
+  "tours": [
+    {
+      "id": "tour:quran-reading-flow",
+      "title": "Quran Reading Feature — End to End",
+      "steps": [
+        { "nodeId": "file:composeApp/src/commonMain/kotlin/com/quranapp/ui/navigation/AppNavigation.kt", "reason": "Navigation entry point — routes the user to the Quran reader." },
+        { "nodeId": "file:composeApp/src/commonMain/kotlin/com/quranapp/ui/screens/quran/QuranScreens.kt", "reason": "The Surah list and Ayah reader UI screens." },
+        { "nodeId": "file:composeApp/src/commonMain/kotlin/com/quranapp/viewmodel/ViewModels.kt", "reason": "ViewModel bridges the UI to the domain use cases." },
+        { "nodeId": "file:composeApp/src/commonMain/kotlin/com/quranapp/domain/usecase/quran/QuranUseCases.kt", "reason": "Business logic: fetch surahs, ayahs, and tafsir." },
+        { "nodeId": "file:composeApp/src/commonMain/kotlin/com/quranapp/data/repository/QuranRepositoryImpl.kt", "reason": "Data layer: SQLDelight local DB with remote fallback." }
+      ]
+    },
+    {
+      "id": "tour:ai-learning-flow",
+      "title": "AI-Powered Learning Feature",
+      "steps": [
+        { "nodeId": "file:composeApp/src/commonMain/kotlin/com/quranapp/ui/component/FlashcardSession.kt", "reason": "Flashcard UI — the user's entry point to a learning session." },
+        { "nodeId": "file:composeApp/src/commonMain/kotlin/com/quranapp/viewmodel/LearningViewModel.kt", "reason": "Manages session state and records review outcomes." },
+        { "nodeId": "file:composeApp/src/commonMain/kotlin/com/quranapp/domain/usecase/learning/SpacedRepetitionUseCase.kt", "reason": "Implements the SM-2 scheduling algorithm." },
+        { "nodeId": "file:composeApp/src/commonMain/kotlin/com/quranapp/domain/usecase/learning/UnderstandAyahUseCase.kt", "reason": "Calls the AI backend to generate deep Ayah explanations." },
+        { "nodeId": "file:composeApp/src/commonMain/kotlin/com/quranapp/ui/component/UnderstandSheet.kt", "reason": "Displays the AI explanation in a bottom sheet." },
+        { "nodeId": "file:composeApp/src/commonMain/kotlin/com/quranapp/ui/component/UnderstandSectionParser.kt", "reason": "Parses the raw AI text into displayable sections." }
+      ]
+    }
+  ]
+}
